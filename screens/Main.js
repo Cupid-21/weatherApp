@@ -13,6 +13,37 @@ import {LinearGradient} from 'expo-linear-gradient';
 import useCachedResources from "./useCachedResources";
 //npx expo install expo-linear-gradient
 
+// import * as SQLite from 'expo-sqlite';
+// import * as FileSystem from 'expo-file-system';
+
+// const db = SQLite.openDatabase('db.db');
+// console.log(db);
+// db.transaction(tx => {
+//   tx.executeSql(
+//     'CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, age INTEGER)'
+//   );
+//   tx.executeSql(
+//     'INSERT INTO users (name, age) VALUES (?, ?)',
+//     ['John Doe', 25]
+//   );
+// });
+
+// db.transaction(tx => {
+//   tx.executeSql(
+//     'SELECT * FROM users',
+//     [],
+//     (_, { rows }) => {
+//       for (let i = 0; i < rows.length; i++) {
+//         console.log("????",rows.item(i));
+//       }
+//     }
+//   );
+// });
+
+// const dataDirectory = FileSystem.documentDirectory;
+// const databasePath = `${dataDirectory}db.db`;
+// console.log(databasePath);
+
 const chartHeight = Dimensions.get('window').height;
 const chartWidth = Dimensions.get('window').width;
 
@@ -22,7 +53,6 @@ console.log(SCREEN_WIDTH);
 
 // api key
 const serviceKey = 'DHAcdCIG92vecEcQDukq%2B%2Fn8eWJtPZ9jKZ3isc%2FWrsnaFK1ZMGLQraTGzmMhDIQLj%2FZCUSkvmj1BgKChWFkbjw%3D%3D';
-                    
 const locationJson = require('../data.json');
 
 
@@ -312,7 +342,7 @@ export function extractVilageWeather(json){
   return [weatherInfo, tmpfortime, windfortime, rainfortime, humidityfortime];
 };
 
-// 주간 최저, 최고 기온 추출
+// 주간(내일, 모레) 최저, 최고 기온 추출
 export function extractVilageWeekWeather(json){
   const items = json.response.body.items.item;
   let maximumTemp = [];
@@ -329,6 +359,26 @@ export function extractVilageWeekWeather(json){
   console.log("최고기온리스트 확인:",maximumTemp);
   return [minimumTemp, maximumTemp];
 };
+
+// 주간(3일 후~9일 후) 최저, 최고 기온 추출
+export function extractVilageWeekWeather3(json){
+  const item = json.response.body.items.item[0];
+  let maximumTemp = [];
+  let minimumTemp = [];
+
+  for (let i = 3; i <= 10; i++) {
+    const taMinKey = `taMin${i}`;
+    const taMaxKey = `taMax${i}`;
+    const taMinValue = item[taMinKey];
+    const taMaxValue = item[taMaxKey];
+  
+    minimumTemp.push(taMinValue);
+    maximumTemp.push(taMaxValue);
+  
+  }
+  return [minimumTemp, maximumTemp];
+};
+
 
 function extractPm(grade){
   if (grade==1){
@@ -394,6 +444,33 @@ export function commentWeather(weatherDict,apiType){
   }
   return commentDict; 
 }
+function getDayofweek(){
+  var d = new Date();
+  var weekday = new Array(7);
+  weekday[0] = "Sun";
+  weekday[1] = "Mon";
+  weekday[2] = "Tue";
+  weekday[3] = "Wed";
+  weekday[4] = "Thu";
+  weekday[5] = "Fri";
+  weekday[6] = "Sat";
+
+  today=d.getDay() // 1
+  var weekly=[];
+
+  for(let i=0 ; i<7 ; i++){
+    if (today==7){
+      today=0;
+    }
+    weekly.push(weekday[today]);
+    today+=1;
+    console.log(weekly);
+  }
+  return weekly;
+}
+
+
+   
 
 // 초단기예보, 단기예보 api
 function getCurrnetWeatherUrl(latitude, longitude, apiType){
@@ -408,6 +485,8 @@ function getCurrnetWeatherUrl(latitude, longitude, apiType){
   var hours = currentDate.getHours().toString().padStart(2, '0');
   var minutes = currentDate.getMinutes().toString().padStart(2, '0');
 
+  const base_date2 = `${year}${month}${day}`;
+
   var modifiedTime;
   if (apiType=="vilage"){
     modifiedTime = modifyTime(hours,day,"vilage");
@@ -419,7 +498,8 @@ function getCurrnetWeatherUrl(latitude, longitude, apiType){
   hours=modifiedTime[0];
   day=modifiedTime[1];
 
-  const base_date = `${year}${month}${day}`;
+  var base_date = `${year}${month}${day}`;
+  
   const base_time = `${hours}${minutes}`;
 
   var rs = dfs_xy_conv("toXY",latitude.toString(),longitude.toString());
@@ -429,7 +509,8 @@ function getCurrnetWeatherUrl(latitude, longitude, apiType){
   
   return [`http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getUltraSrtFcst?serviceKey=${serviceKey}&numOfRows=60&pageNo=1&base_date=${base_date}&base_time=${base_time}&nx=${nx}&ny=${ny}&dataType=json`,
           `http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst?serviceKey=${serviceKey}&numOfRows=290&pageNo=1&base_date=${base_date}&base_time=2300&nx=${nx}&ny=${ny}&dataType=json`,
-          `http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst?serviceKey=${serviceKey}&numOfRows=882&pageNo=1&base_date=${base_date}&base_time=2300&nx=${nx}&ny=${ny}&dataType=json`];
+          `http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst?serviceKey=${serviceKey}&numOfRows=882&pageNo=1&base_date=${base_date}&base_time=2300&nx=${nx}&ny=${ny}&dataType=json`,
+          `https://apis.data.go.kr/1360000/MidFcstInfoService/getMidTa?serviceKey=${serviceKey}&pageNo=1&numOfRows=10&dataType=JSON&regId=11G00201&tmFc=${base_date2}0600`];
 }
 
 function getCurrnetPmUrl(region){
@@ -591,6 +672,19 @@ export default function Main() {
   const [afterTomorrowMin, setAfterTomorrowMin] = useState();
   const [tomorrowMax, setTomorrowMax] = useState();
   const [afterTomorrowMax, setAfterTomorrowMax] = useState();
+  const [min3, setMin3] = useState();
+  const [max3, setMax3] = useState();
+  const [min4, setMin4] = useState();
+  const [max4, setMax4] = useState();
+  const [min5, setMin5] = useState();
+  const [max5, setMax5] = useState();
+  const [min6, setMin6] = useState();
+  const [max6, setMax6] = useState();
+  
+  const [dayofweek3, setDayofweek3] = useState(); 
+  const [dayofweek4, setDayofweek4] = useState(); 
+  const [dayofweek5, setDayofweek5] = useState(); 
+  const [dayofweek6, setDayofweek6] = useState(); 
 
   const isLoaded = useCachedResources();
 
@@ -711,6 +805,10 @@ export default function Main() {
     setLowerTemp(JSON.stringify(vilageWeatherInfo.lowerTmp).replace(/\"/gi, ""));
     setUpperTemp(JSON.stringify(vilageWeatherInfo.upperTmp).replace(/\"/gi, ""));
 
+    
+    
+
+
     // 오늘, 내일, 모레 최저/최고 기온
     const vilageWeekUrl = getCurrnetWeatherUrl(latitude, longitude,"vilage")[2];
     console.log("주간 예보 url",vilageWeekUrl);
@@ -719,10 +817,40 @@ export default function Main() {
     weekMinTempList=extractVilageWeekWeather(vilageWeekJson)[0] // 최저기온 리스트
     weekMaxTempList=extractVilageWeekWeather(vilageWeekJson)[1] // 최고기온 리스트
 
-    setTomorrowMin(weekMinTempList[0].replace(/\"/gi, ""));
-    setAfterTomorrowMin(weekMinTempList[1].replace(/\"/gi, ""));
+    setTomorrowMin(weekMinTempList[0].replace(/\"/gi, "")); // 내일
+    setAfterTomorrowMin(weekMinTempList[1].replace(/\"/gi, "")); // 모레
     setTomorrowMax(weekMaxTempList[0].replace(/\"/gi, ""));
     setAfterTomorrowMax(weekMaxTempList[1].replace(/\"/gi, ""));
+
+    // 3일 후~ 9일 후 최저/최고 기온
+    const vilageWeekUrl3 = getCurrnetWeatherUrl(latitude, longitude,"vilage")[3];
+    console.log("이거",vilageWeekUrl3);
+    const vilageWeekResponse3 = await fetch(vilageWeekUrl3);
+    const vilageWeekJson3 = await vilageWeekResponse3.json(); // 응답을 JSON 형태로 파싱
+    weekMinTempList3=extractVilageWeekWeather3(vilageWeekJson3)[0] // 최저기온 리스트
+    weekMaxTempList3=extractVilageWeekWeather3(vilageWeekJson3)[1] // 최고기온 리스트
+    
+
+    setMin3(weekMinTempList3[0]); // 3일 뒤
+    setMax3(weekMaxTempList3[0]);
+    setMin4(weekMinTempList3[1]); // 4일 뒤
+    setMax4(weekMaxTempList3[1]);
+    setMin5(weekMinTempList3[2]); // 5일 뒤
+    setMax5(weekMaxTempList3[2]);
+    setMin6(weekMinTempList3[3]); // 6일 뒤
+    setMax6(weekMaxTempList3[3]);
+
+    const weekly=getDayofweek()
+    console.log("!!!!!!!!!!!!!!!!!",weekly);
+    setDayofweek3(weekly[3]);
+    setDayofweek4(weekly[4]);
+    setDayofweek5(weekly[5]);
+    setDayofweek6(weekly[6]);
+    console.log(dayofweek3);
+
+    
+    // setMin3(weekMinTempList3[0]); // 3일 뒤
+    // setMax3(weekMaxTempList3[0]);
         
     // const pmJson = await pmResponse.json(); // 응답을 JSON 형태로 파싱
     // pmInfo=extractPm(pmJson);
@@ -1274,49 +1402,49 @@ export default function Main() {
         <Text style={styles.low}>{afterTomorrowMin}</Text>
        </View>
   
-       {/* <View style={styles.weekly}>
+       <View style={styles.weekly}>
         <Text style={styles.dayOfweek}>
-            오늘
+          {dayofweek3}
           </Text>
         <View style={styles.hum}></View>
         <View style={styles.icon}></View>
         <View style={styles.icon}></View>
-        <View style={styles.high}></View>
-        <View style={styles.low}></View>
+        <Text style={styles.high}>{min3}.0</Text>
+        <Text style={styles.low}>{max3}.0</Text>
        </View>
   
        <View style={styles.weekly}>
         <Text style={styles.dayOfweek}>
-            오늘
+          {dayofweek4}
           </Text>
         <View style={styles.hum}></View>
         <View style={styles.icon}></View>
         <View style={styles.icon}></View>
-        <View style={styles.high}></View>
-        <View style={styles.low}></View>
+        <Text style={styles.high}>{min4}.0</Text>
+        <Text style={styles.low}>{max4}.0</Text>
        </View>
   
        <View style={styles.weekly}>
         <Text style={styles.dayOfweek}>
-            오늘
+          {dayofweek5}
           </Text>
         <View style={styles.hum}></View>
         <View style={styles.icon}></View>
         <View style={styles.icon}></View>
-        <View style={styles.high}></View>
-        <View style={styles.low}></View>
+        <Text style={styles.high}>{min5}.0</Text>
+        <Text style={styles.low}>{max5}.0</Text>
        </View>
   
        <View style={styles.weekly}>
         <Text style={styles.dayOfweek}>
-            오늘
+          {dayofweek6}  
           </Text>
         <View style={styles.hum}></View>
         <View style={styles.icon}></View>
         <View style={styles.icon}></View>
-        <View style={styles.high}></View>
-        <View style={styles.low}></View>
-       </View> */}
+        <Text style={styles.high}>{min6}.0</Text>
+        <Text style={styles.low}>{max6}.0</Text>
+       </View>
         
         </View>
         </ScrollView>
