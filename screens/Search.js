@@ -40,6 +40,8 @@ const Search = ({ navigation, route }) => {
     const [pmValue10, setPmValue10]=useState();
     const [pmValue25, setPmValue25]=useState();
 
+    const [district, setDistrict]=useState();
+
     const [tempData, setTempData]=useState(null);
     const [windData, setWindData]=useState(null);
     const [rainData, setRainData]=useState(null);
@@ -87,20 +89,12 @@ const Search = ({ navigation, route }) => {
 
     const compareWeather = async () => {
         
-        const { srcUltraSrtInfo, srcVilageInfo, searchTmpForTime, searchWindForTime, searchRainForTime, searchHumidityForTime, vilageJson } = route.params;
+        const { srcUltraSrtInfo, srcVilageInfo, searchTmpForTime, searchWindForTime, searchRainForTime, searchHumidityForTime, vilageJson,
+                district } = route.params;
 
-        // const testUrl = `https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getUltraSrtFcst?serviceKey=DHAcdCIG92vecEcQDukq%2B%2Fn8eWJtPZ9jKZ3isc%2FWrsnaFK1ZMGLQraTGzmMhDIQLj%2FZCUSkvmj1BgKChWFkbjw%3D%3D&numOfRows=60&pageNo=1&base_date=20230601&base_time=1400&nx=60&ny=127&dataType=json`;
-        // const testUrl2 = `https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst?serviceKey=DHAcdCIG92vecEcQDukq%2B%2Fn8eWJtPZ9jKZ3isc%2FWrsnaFK1ZMGLQraTGzmMhDIQLj%2FZCUSkvmj1BgKChWFkbjw%3D%3D&numOfRows=290&pageNo=1&base_date=20230601&base_time=2300&nx=60&ny=127&dataType=json`;
-        // const compareResponse = await fetch(testUrl);
-        // const compareJson = await compareResponse.json();
-        // const searchResponse = await fetch(testUrl2);
-        // const searchJson = await searchResponse.json();
-    
+        setDistrict(district);
+
         
-
-        // 검색 지역 초단기예보
-        // compareInfo=extractUltraSrtWeather(compareJson); 
-        // console.log("검색 지역!! : ", commentWeather(srcUltraSrtInfo,"ultraSrt"));
     
         // getWeather에서 생성한 vilageJson 사용
         // 6,9,12,15,18,21시 기온
@@ -214,7 +208,7 @@ const Search = ({ navigation, route }) => {
       };
 
       const getAdvice = async (content,type) => {
-        const api_key = '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';
+        const api_key = '';
         // const keywords = '커피';
         const messages = [
           { role: 'system', content: 'You are a helpful assistant.' },
@@ -297,7 +291,7 @@ const Search = ({ navigation, route }) => {
             </>
         )}
             <Text style={styles.temp}>{TEMP}</Text>
-            <Text style={styles.description}>{SKY}</Text>
+            <Text style={styles.description}>{SKY} {district}</Text>
             <Text style={styles.description}>{adviceTemp}</Text>
         </View>
         <View style={styles.day}>
