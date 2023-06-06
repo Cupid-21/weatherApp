@@ -744,7 +744,7 @@ export default function Main() {
                                       searchTmpForTime : searchTmpForTime, searchWindForTime : searchWindForTime,
                                       searchRainForTime : searchRainForTime, searchHumidityForTime : searchHumidityForTime,
                                       vilageJson : vilageJson, srcPmlist : srcPmlist,
-                                      district : district });
+                                      district : district, locationName : locationName });
 
       console.log("검색 지역 urllll", srcUltraSrtInfo);
     } else {

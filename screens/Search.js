@@ -40,7 +40,8 @@ const Search = ({ navigation, route }) => {
     const [pmValue10, setPmValue10]=useState();
     const [pmValue25, setPmValue25]=useState();
 
-    const [district, setDistrict]=useState();
+    const [district, setDistrict]=useState(); // 현재 지역 이름
+    const [locationName, setLocationName]=useState(); // 검색 지역 이름
 
     const [tempData, setTempData]=useState(null);
     const [windData, setWindData]=useState(null);
@@ -90,9 +91,10 @@ const Search = ({ navigation, route }) => {
     const compareWeather = async () => {
         
         const { srcUltraSrtInfo, srcVilageInfo, searchTmpForTime, searchWindForTime, searchRainForTime, searchHumidityForTime, vilageJson,
-                district } = route.params;
+                district, locationName } = route.params;
 
         setDistrict(district);
+        setLocationName(locationName);
 
         
     
@@ -309,7 +311,7 @@ const Search = ({ navigation, route }) => {
             )}  
         </>
         )}
-            <Text style={styles.temp}>{lowerTEMP}</Text>
+            <Text style={styles.temp}>{lowerTEMP} {locationName}</Text>
             <Text style={styles.description}>{upperTEMP}</Text>
             <Text style={styles.description}>{adviceWind}</Text>
         </View>
