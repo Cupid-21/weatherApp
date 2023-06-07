@@ -574,7 +574,7 @@ export function makeSensoryData(tmpList,humidityList){
 }
 
 
-//const {width:screenWidth} = Dimensions.get("window");
+const {width:screenWidth} = Dimensions.get("window");
 
 const chartConfig = {
   backgroundGradientFrom: "#1E2923",
@@ -657,7 +657,8 @@ export default function Main() {
   const [pmGrade25, setPmGrade25]=useState();
   const [pmValue10, setPmValue10]=useState();
   const [pmValue25, setPmValue25]=useState();
-  // const [tempData, setTempData]=useState(null);
+
+  const [tempData, setTempData]=useState(null);
   const [windData, setWindData]=useState(null);
   const [rainData, setRainData]=useState(null);
   const [sensoryData, setSensoryData]=useState(null);
@@ -867,6 +868,91 @@ export default function Main() {
 
   };
 
+  const compareWeather = async () => {
+
+    // getWeather에서 생성한 vilageJson 사용
+    // 6,9,12,15,18,21시 기온
+    currentTmpForTime=extractVilageWeather(vilageJson)[1]; 
+    const currentTmpList=makeData(currentTmpForTime);
+    //console.log("검색 지역 기온 : ", searchTmpForTime);
+
+    // 6,9,12,15,18,21시 풍속
+    currentWindForTime=extractVilageWeather(vilageJson)[2]; 
+
+    // 6,9,12,15,18,21시 강수량
+    currentRainForTime=extractVilageWeather(vilageJson)[3];
+    
+
+    // 6,9,12,15,18,21시 습도
+    currentHumidityForTime=extractVilageWeather(vilageJson)[4];
+
+    const currentHumidityList=makeData(currentHumidityForTime);
+
+    // 6,9,12,15,18,21시 체감온도
+    const currentSensoryData = makeSensoryData(currentTmpList,currentHumidityList);
+    
+  
+    
+
+    const dataForTmp = {
+      labels: ["6시", "9시", "12시", "15시", "18시", "21시"],
+      datasets : [
+        {
+          data: makeData(currentTmpForTime),
+          color: (opacity = 1) => `rgba(255, 0, 0, ${opacity})`, // 첫 번째 데이터 세트의 색상
+          strokeWidth: 2 // 첫 번째 데이터 세트의 선 두께
+        }
+      ],
+      legend: ["시간대별 기온"] // optional
+    };
+
+    const dataForWind = {
+      labels: ["6시", "9시", "12시", "15시", "18시", "21시"],
+      datasets : [
+        {
+          data: makeData(currentWindForTime),
+          color: (opacity = 1) => `rgba(255, 0, 0, ${opacity})`, // 첫 번째 데이터 세트의 색상
+          strokeWidth: 2 // 첫 번째 데이터 세트의 선 두께
+        }
+      ],
+      legend: ["시간대별 풍속"] // optional
+    };
+
+    const dataForRain = {
+      labels: ["6시", "9시", "12시", "15시", "18시", "21시"],
+      datasets : [
+        {
+          data: makeData(currentRainForTime),
+          color: (opacity = 1) => `rgba(255, 0, 0, ${opacity})`, // 첫 번째 데이터 세트의 색상
+          strokeWidth: 2 // 첫 번째 데이터 세트의 선 두께
+        }
+      ],
+      legend: ["시간대별 강수량"] // optional
+    };
+
+    const dataForSensory = {
+      labels: ["6시", "9시", "12시", "15시", "18시", "21시"],
+      datasets : [
+        {
+          data: currentSensoryData,
+          color: (opacity = 1) => `rgba(255, 0, 0, ${opacity})`, // 첫 번째 데이터 세트의 색상
+          strokeWidth: 2 // 첫 번째 데이터 세트의 선 두께
+        }
+      ],
+      legend: ["시간대별 체감온도"] // optional
+    };
+
+    // console.log("data 확인",data.datasets[0].data);
+    setTempData(dataForTmp);
+    setWindData(dataForWind);
+    setRainData(dataForRain);
+    setSensoryData(dataForSensory);
+    setIsLoading(false); // 데이터 로딩 완료 상태 설정
+    console.log("비교 그래프 확인")
+
+  
+  };
+
 
 
 
@@ -920,7 +1006,7 @@ export default function Main() {
 
   useEffect(() => {
     getWeather();
-    // compareWeather();
+    compareWeather();
     // 현재 날씨 조언 기능
     getAdvice('기온'+ TEMP +'도, 미세먼지 '+pmGrade10+'인 날씨에 대한 재밌는 한마디 부탁해',"current");
     // 공유 메시지 질문을 gpt에게 넘기기
@@ -1202,6 +1288,72 @@ export default function Main() {
        </View>
         
         </View>
+
+        <View style={styles.day}>
+        {isLoading ? (
+        <Text>Loading...</Text> // 로딩 상태 표시
+        ) : (
+            <>{tempData && (
+            <LineChart
+                data={tempData}
+                width={screenWidth}
+                height={220}
+                chartConfig={chartConfig}
+            />)} 
+            </>
+        )}
+            
+        </View>
+        <View style={styles.day}>
+        {isLoading ? (
+        <Text>Loading...</Text> // 로딩 상태 표시
+        ) : (
+        <>
+            {windData && (
+            <LineChart
+            data={windData}
+            width={screenWidth}
+            height={220}
+            chartConfig={chartConfig}
+            />
+            )}  
+        </>
+        )}
+            
+        </View>
+        <View style={styles.day}>
+          {isLoading ? (
+          <Text>Loading...</Text> // 로딩 상태 표시
+          ) : (
+          <>
+              {rainData && (
+              <LineChart
+              data={rainData}
+              width={screenWidth}
+              height={220}
+              chartConfig={chartConfig}
+              />
+              )}  
+          </>
+          )}
+          
+        </View>
+        <View style={styles.day}>
+        {isLoading ? (
+          <Text>Loading...</Text> // 로딩 상태 표시
+          ) : (
+              <>{sensoryData && (
+              <LineChart
+                  data={sensoryData}
+                  width={screenWidth}
+                  height={220}
+                  chartConfig={chartConfig}
+              />)} 
+              </>
+          )}
+          
+        </View>
+
         </ScrollView>
         </View>
         </LinearGradient>
