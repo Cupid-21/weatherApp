@@ -54,22 +54,12 @@ const chartWidth = Dimensions.get('window').width;
 
 
 const {width:SCREEN_WIDTH} = Dimensions.get("window");
-console.log(SCREEN_WIDTH);
+// console.log(SCREEN_WIDTH);
 
 // api key
 const serviceKey = 'DHAcdCIG92vecEcQDukq%2B%2Fn8eWJtPZ9jKZ3isc%2FWrsnaFK1ZMGLQraTGzmMhDIQLj%2FZCUSkvmj1BgKChWFkbjw%3D%3D';
 const locationJson = require('../data.json');
 
-
-
-// const location = searchLocation("청운효자동");
-// if (location) {
-//   const { latitude, longitude } = location;
-//   console.log("위도:", latitude);
-//   console.log("경도:", longitude);
-// } else {
-//   console.log("지역을 찾을 수 없습니다.");
-// }
 
 // 초단기예보 : 현재 시각에서 1시간 빼줌 (예외처리 : 23시)
 // 단기예보 : 어제 날짜, 23시로 지정
@@ -343,7 +333,7 @@ export function extractVilageWeather(json){
       }
     }
   });
-  console.log("강수량 데이터 확인:",rainfortime);
+  // console.log("강수량 데이터 확인:",rainfortime);
   return [weatherInfo, tmpfortime, windfortime, rainfortime, humidityfortime];
 };
 
@@ -360,8 +350,8 @@ export function extractVilageWeekWeather(json){
       maximumTemp.push(dic["fcstValue"]);
     }
   });
-  console.log("최저기온리스트 확인:",minimumTemp);
-  console.log("최고기온리스트 확인:",maximumTemp);
+  // console.log("최저기온리스트 확인:",minimumTemp);
+  // console.log("최고기온리스트 확인:",maximumTemp);
   return [minimumTemp, maximumTemp];
 };
 
@@ -469,7 +459,7 @@ function getDayofweek(){
     }
     weekly.push(weekday[today]);
     today+=1;
-    console.log(weekly);
+    // console.log(weekly);
   }
   return weekly;
 }
@@ -525,7 +515,7 @@ function getCurrnetPmUrl(region){
 }
 
 export function sensoryTemp(temp,humidity){
-  console.log("기온,습도",temp,humidity);
+  // console.log("기온,습도",temp,humidity);
   let Tw=temp*Math.atan(0.151977*Math.sqrt(humidity+8.313659)); //Tw(습구온도)
   Tw += Math.atan(temp+humidity);
   Tw -= Math.atan(humidity-1.67633);
@@ -561,7 +551,7 @@ export function makeData(currentTmpForTime){
     values.push(parseInt(value));
   });
   // console.log(values);
-  console.log("makeData 확인",typeof(values[0]));
+  // console.log("makeData 확인",typeof(values[0]));
   return values;
 }
 
@@ -730,9 +720,9 @@ export default function Main() {
           'SELECT * FROM bookmarkloc WHERE loc = ?',
           [locationName],
           (_, { rows }) => {
-            if (rows.length === 0) {
+            if (rows.length === 0) { // 테이블에 해당 위치가 저장되어 있지 않을 경우
               tx.executeSql(
-                'INSERT INTO bookmarkloc (loc) VALUES (?)',
+                'INSERT INTO bookmarkloc (loc) VALUES (?)', // 위치 insert
                 [locationName],
                 (_, { rowsAffected }) => {
                   if (rowsAffected > 0) {
@@ -740,150 +730,141 @@ export default function Main() {
                   } else {
                     console.log('Failed to insert location.');
                   }
+      
+                  // 두 번째 쿼리 실행. 순서 보장하기 위해 콜백 함수 내에서 처리
+                  tx.executeSql(
+                    'SELECT * FROM bookmarkloc ORDER BY id DESC LIMIT 3', // 최근에 추가된 값 3개 내림차순으로 가져와서 즐겨찾기 목록에 추가
+                    [],
+                    (_, { rows }) => {
+                      if (rows.length >= 1) {
+                        setFavorite1(rows.item(0).loc);
+                      }
+                      if (rows.length >= 2) {
+                        setFavorite2(rows.item(1).loc);
+                      }
+                      if (rows.length >= 3) {
+                        setFavorite3(rows.item(2).loc);
+                      }
+                    }
+                  );
                 }
               );
             } else {
               console.log('Location already exists.');
-            }
-          }
-        );
-
-        tx.executeSql(
-          'SELECT * FROM bookmarkloc',
-          [],
-          (_, { rows }) => {
-            for (let i = 0; i < rows.length; i++) {
-              console.log(rows.item(i).loc);
-            }
-          }
-        );
-
-        tx.executeSql(
-          'SELECT * FROM bookmarkloc ORDER BY id DESC LIMIT 3',
-          [],
-          (_, { rows }) => {
-            var favorites=[];
-            for (let i = 0; i < rows.length; i++) {
-              // console.log(rows.item(i).loc);
-              favorites.push(rows.item(i).loc);
-              // console.log("favorite///", favorites)
-              // setFavorite1(rows.item(i).loc)
-            }
-            console.log(favorites);
-            setFavorite1(favorites[0]);
-            setFavorite2(favorites[1]);
-            setFavorite3(favorites[2]);
-        });
-      });
       
-      // var favorites=[];
+              // 두 번째 쿼리 실행
+              tx.executeSql( // 
+                'SELECT * FROM bookmarkloc ORDER BY id DESC LIMIT 3',
+                [],
+                (_, { rows }) => {
+                  if (rows.length >= 1) {
+                    setFavorite1(rows.item(0).loc);
+                  }
+                  if (rows.length >= 2) {
+                    setFavorite2(rows.item(1).loc);
+                  }
+                  if (rows.length >= 3) {
+                    setFavorite3(rows.item(2).loc);
+                  }
+                }
+              );
+            }
+          }
+        );
+      });
+
       // db.transaction(tx => {
       //   tx.executeSql(
-      //     'SELECT * FROM favoriteregion ORDER BY id DESC LIMIT 3',
-      //     [],
+      //     'SELECT * FROM bookmarkloc WHERE loc = ?',
+      //     [locationName],
       //     (_, { rows }) => {
-            
-      //       for (let i = 0; i < rows.length; i++) {
-      //         // console.log(rows.item(i).loc);
-      //         favorites.push(rows.item(i).loc);
-      //         // console.log("favorite///", favorites)
-      //         // setFavorite1(rows.item(i).loc)
-      //       }
-      //       console.log("페이보릿",favorites);
-      //       if (!(favorites.includes(locationName))){
-      //         // console.log(favorites[0]);
-      //         // console.log("in 확인",!(favorites.includes(locationName)));
+      //       if (rows.length === 0) {
+      //         // 테이블에 해당 위치가 저장되어 있지 않을 경우
       //         tx.executeSql(
-      //           'INSERT INTO favoriteregion (loc) VALUES (?)',
-      //           [locationName]
+      //           'INSERT INTO bookmarkloc (loc) VALUES (?)',
+      //           [locationName],
+      //           (_, { rowsAffected }) => {
+      //             if (rowsAffected > 0) {
+      //               console.log('Location inserted successfully.');
+      //             } else {
+      //               console.log('Failed to insert location.');
+      //             }
+      
+      //             // 두 번째 쿼리 실행. 순서 보장하기 위해 콜백 함수 내에서 처리
+      //             tx.executeSql(
+      //               'SELECT * FROM bookmarkloc ORDER BY id DESC LIMIT 3',
+      //               [],
+      //               (_, { rows }) => {
+      //                 if (rows.length >= 1) {
+      //                   setFavorite1(rows.item(0).loc);
+      //                 }
+      //                 if (rows.length >= 2) {
+      //                   setFavorite2(rows.item(1).loc);
+      //                 }
+      //                 if (rows.length >= 3) {
+      //                   setFavorite3(rows.item(2).loc);
+      //                 }
+      //               }
+      //             );
+      //           }
+      //         );
+      //       } else {
+      //         console.log('Location already exists.');
+      
+      //         // 해당 위치 삭제
+      //         tx.executeSql(
+      //           'DELETE FROM bookmarkloc WHERE loc = ?',
+      //           [locationName],
+      //           (_, { rowsAffected }) => {
+      //             if (rowsAffected > 0) {
+      //               console.log('Location deleted successfully.');
+      //             } else {
+      //               console.log('Failed to delete location.');
+      //             }
+      
+      //             // 가장 최근 항목으로 다시 추가
+      //             tx.executeSql(
+      //               'INSERT INTO bookmarkloc (loc) SELECT loc FROM bookmarkloc ORDER BY id DESC LIMIT 1',
+      //               [],
+      //               (_, { rowsAffected }) => {
+      //                 if (rowsAffected > 0) {
+      //                   console.log('Location re-added successfully.');
+      //                 } else {
+      //                   console.log('Failed to re-add location.');
+      //                 }
+      
+      //                 // 두 번째 쿼리 실행
+      //                 tx.executeSql(
+      //                   'SELECT * FROM bookmarkloc ORDER BY id DESC LIMIT 3',
+      //                   [],
+      //                   (_, { rows }) => {
+      //                     if (rows.length >= 1) {
+      //                       setFavorite1(rows.item(0).loc);
+      //                     }
+      //                     if (rows.length >= 2) {
+      //                       setFavorite2(rows.item(1).loc);
+      //                     }
+      //                     if (rows.length >= 3) {
+      //                       setFavorite3(rows.item(2).loc);
+      //                     }
+      //                   }
+      //                 );
+      //               }
+      //             );
+      //           }
       //         );
       //       }
-      //       setFavorite1(favorites[0]);
-      //       setFavorite2(favorites[1]);
-      //       setFavorite3(favorites[2]);
-      //     }
-      //   );
-      //   tx.executeSql(
-      //     'SELECT * FROM favoriteregion ORDER BY id DESC LIMIT 3',
-      //     [],
-      //     (_, { rows }) => {
-      //       var save=[];
-      //       for (let i = 0; i < rows.length; i++) {
-      //         console.log(rows.item(i).loc);
-      //         save.push(rows.item(i).loc);
-      //         console.log("favorite///", favorites)
-      //         // setFavorite1(rows.item(i).loc)
-      //       }
-      //       // setFavorite1(save[0]);
-      //       // setFavorite2(save[1]);
-      //       // setFavorite3(save[2]);
       //     }
       //   );
       // });
-    
 
         
-
-            
-
-            // var temp1=favorite1;
-            // var temp2=favorite2;
-            // var temp3=favorite3;
-      // const db = SQLite.openDatabase('cupidweather.db');
-      // db.transaction(tx => {
-      //   tx.executeSql(
-      //     'INSERT INTO favoriteregion (loc) VALUES (?)',
-      //     [locationName]
-      //   );
-
-      //   tx.executeSql(
-      //     'SELECT * FROM favoriteregion ORDER BY id DESC LIMIT 3',
-      //     [],
-      //     (_, { rows }) => {
-      //       var favorites=[];
-      //       for (let i = 0; i < rows.length; i++) {
-      //         console.log(rows.item(i).loc);
-      //         favorites.push(rows.item(i).loc);
-      //         console.log("favorite///", favorites)
-      //         // setFavorite1(rows.item(i).loc)
-      //       }
-      //       var temp1=favorite1;
-      //       var temp2=favorite2;
-      //       var temp3=favorite3;
-
-            // if (favorites[0]==favorites[1]){
-
-            // }
-
-            // else{
-            
-            // }
-          
-
-        
-
-
-
-      // db.transaction(tx => {
-      //   tx.executeSql(
-      //     'SELECT * FROM favorite ORDER BY id DESC LIMIT 3',
-      //     [],
-      //     (_, { rows }) => {
-      //       for (let i = 0; i < rows.length; i++) {
-      //         console.log(rows.item(i).loc);
-      //         favorites.push(rows.item(i).loc);
-      //       }
-      //     }
-      //   );
-      // });
-      // console.log("즐겨찾기 목록",favorites);
-      // setFavorite1(favorites[0]);
-      // setFavorite2(favorites[1]);
-      // setFavorite3(favorites[2]);
+   
+      
 
       // 검색 지역 초단기 api 요청
       const srcUltraSrtUrl = getCurrnetWeatherUrl(lat, lon, "ultraSrt")[0];
-      console.log("검색 지역 초단기 url",srcUltraSrtUrl)
+      // console.log("검색 지역 초단기 url",srcUltraSrtUrl)
       const srcUltraSrtResponse = await fetch(srcUltraSrtUrl);
       const srcUltraSrtJson = await srcUltraSrtResponse.json();
       //const searchUrl = extractUltraSrtWeather(searchUrl5);
@@ -892,7 +873,7 @@ export default function Main() {
 
       // 검색 지역 단기 api 요청
       const srcVilageUrl = getCurrnetWeatherUrl(lat, lon,"vilage")[1];
-      console.log("검색 지역 단기 url",srcVilageUrl);
+      // console.log("검색 지역 단기 url",srcVilageUrl);
       const srcVilageResponse = await fetch(srcVilageUrl);
       const srcVilageJson = await srcVilageResponse.json(); // 응답을 JSON 형태로 파싱
       const srcVilageInfo=extractVilageWeather(srcVilageJson)[0];
@@ -903,7 +884,7 @@ export default function Main() {
 
       // 검색 지역 미세먼지 api 요청
       const srcPmUrl = getCurrnetPmUrl(sidoForPm);
-      console.log("검색 지역 pmurl : ",srcPmUrl);
+      // console.log("검색 지역 pmurl : ",srcPmUrl);
       var srcPmResponse = await fetch(srcPmUrl);
       srcPmResponse=await srcPmResponse.text();
       srcPmlist=await setPm(srcPmResponse);
@@ -916,7 +897,7 @@ export default function Main() {
                                       vilageJson : vilageJson, srcPmlist : srcPmlist,
                                       district : district, loc : loc });
 
-      console.log("검색 지역 urllll", srcUltraSrtInfo);
+      // console.log("검색 지역 urllll", srcUltraSrtInfo);
     } else {
       setLatitude('');
       setLongitude('');
@@ -979,7 +960,7 @@ export default function Main() {
               // console.log("favorite///", favorites)
               // setFavorite1(rows.item(i).loc)
             }
-            console.log(favorites);
+            // console.log(favorites);
             setFavorite1(favorites[0]);
             setFavorite2(favorites[1]);
             setFavorite3(favorites[2]);
@@ -989,7 +970,7 @@ export default function Main() {
 
       // 검색 지역 초단기 api 요청
       const srcUltraSrtUrl = getCurrnetWeatherUrl(lat, lon, "ultraSrt")[0];
-      console.log("검색 지역 초단기 url",srcUltraSrtUrl)
+      // console.log("검색 지역 초단기 url",srcUltraSrtUrl)
       const srcUltraSrtResponse = await fetch(srcUltraSrtUrl);
       const srcUltraSrtJson = await srcUltraSrtResponse.json();
       //const searchUrl = extractUltraSrtWeather(searchUrl5);
@@ -998,7 +979,7 @@ export default function Main() {
 
       // 검색 지역 단기 api 요청
       const srcVilageUrl = getCurrnetWeatherUrl(lat, lon,"vilage")[1];
-      console.log("검색 지역 단기 url",srcVilageUrl);
+      // console.log("검색 지역 단기 url",srcVilageUrl);
       const srcVilageResponse = await fetch(srcVilageUrl);
       const srcVilageJson = await srcVilageResponse.json(); // 응답을 JSON 형태로 파싱
       const srcVilageInfo=extractVilageWeather(srcVilageJson)[0];
@@ -1009,7 +990,7 @@ export default function Main() {
 
       // 검색 지역 미세먼지 api 요청
       const srcPmUrl = getCurrnetPmUrl(sidoForPm);
-      console.log("검색 지역 pmurl : ",srcPmUrl);
+      // console.log("검색 지역 pmurl : ",srcPmUrl);
       var srcPmResponse = await fetch(srcPmUrl);
       srcPmResponse=await srcPmResponse.text();
       srcPmlist=await setPm(srcPmResponse);
@@ -1022,7 +1003,7 @@ export default function Main() {
                                       vilageJson : vilageJson, srcPmlist : srcPmlist,
                                       district : district, loc : loc });
 
-      console.log("검색 지역 urllll", srcUltraSrtInfo);
+      // console.log("검색 지역 urllll", srcUltraSrtInfo);
     } else {
       setLatitude('');
       setLongitude('');
@@ -1053,16 +1034,16 @@ export default function Main() {
 
     // 초단기 예보 api url
     const ultraSrtUrl = await getCurrnetWeatherUrl(latitude, longitude,"ultraSrt")[0];
-    console.log("초단기예보api url",ultraSrtUrl);
+    // console.log("초단기예보api url",ultraSrtUrl);
     
     const ultraSrtResponse = await fetch(ultraSrtUrl);
     const ultraSrtjson = await ultraSrtResponse.json(); // 응답을 JSON 형태로 파싱
-    console.log("checkkkkkkkk :", typeof(ultraSrtjson));
+    // console.log("checkkkkkkkk :", typeof(ultraSrtjson));
     ultraSrtWeatherInfo= extractUltraSrtWeather(ultraSrtjson);
     // setHumidity(ultraSrtWeatherInfo.humidity);
     setSensoryTemp(sensoryTemp(parseFloat(ultraSrtWeatherInfo.temperature),parseFloat(ultraSrtWeatherInfo.humidity)));
     setRainfall(ultraSrtWeatherInfo.rainfall);
-    console.log("초단기 예보 : ",commentWeather(ultraSrtWeatherInfo,"ultraSrt"));
+    // console.log("초단기 예보 : ",commentWeather(ultraSrtWeatherInfo,"ultraSrt"));
     // JSON.stringify() : 객체를 직접적으로 React 자식 요소로 사용할 수 없기 때문에 객체를 문자열로 변환
     // .replace(/\"/gi, "") : 따옴표 제거
     setTemp(JSON.stringify(commentWeather(ultraSrtWeatherInfo,"ultraSrt").temperature).replace(/\"/gi, "")); // 기온
@@ -1073,7 +1054,7 @@ export default function Main() {
 
     // 단기 예보 api url
     const vilageUrl = getCurrnetWeatherUrl(latitude, longitude,"vilage")[1];
-    console.log("단기예보 url",vilageUrl);
+    // console.log("단기예보 url",vilageUrl);
     const vilageResponse = await fetch(vilageUrl);
     const vilageJson = await vilageResponse.json(); // 응답을 JSON 형태로 파싱
     setVilageJson(vilageJson);
@@ -1081,18 +1062,27 @@ export default function Main() {
     vilageWeatherInfo=extractVilageWeather(vilageJson)[0];
     
 
-    console.log("단기 예보 check : ",(vilageWeatherInfo));
+    // console.log("단기 예보 check : ",(vilageWeatherInfo));
 
     setLowerTemp(JSON.stringify(vilageWeatherInfo.lowerTmp).replace(/\"/gi, ""));
     setUpperTemp(JSON.stringify(vilageWeatherInfo.upperTmp).replace(/\"/gi, ""));
 
     
-    
+    // 미세먼지 api url
+    const pmUrl = getCurrnetPmUrl(region);
+    console.log("###############",pmUrl);
+    var pmResponse = await fetch(pmUrl);
+    pmResponse=await pmResponse.text();
+    pmlist=await setPm(pmResponse);
+    setPmGrade10(pmlist[0]);
+    setPmGrade25(pmlist[1]);
+    setPmValue10(pmlist[2]);
+    setPmValue25(pmlist[3]);
 
 
     // 오늘, 내일, 모레 최저/최고 기온
     const vilageWeekUrl = getCurrnetWeatherUrl(latitude, longitude,"vilage")[2];
-    console.log("주간 예보 url",vilageWeekUrl);
+    // console.log("주간 예보 url",vilageWeekUrl);
     const vilageWeekResponse = await fetch(vilageWeekUrl);
     const vilageWeekJson = await vilageWeekResponse.json(); // 응답을 JSON 형태로 파싱
     weekMinTempList=extractVilageWeekWeather(vilageWeekJson)[0] // 최저기온 리스트
@@ -1130,16 +1120,7 @@ export default function Main() {
     console.log(dayofweek3);
 
     
-    // 미세먼지 api url
-    const pmUrl = getCurrnetPmUrl(region);
-    console.log("pmurl",pmUrl);
-    var pmResponse = await fetch(pmUrl);
-    pmResponse=await pmResponse.text();
-    pmlist=await setPm(pmResponse);
-    setPmGrade10(pmlist[0]);
-    setPmGrade25(pmlist[1]);
-    setPmValue10(pmlist[2]);
-    setPmValue25(pmlist[3]);
+    
 
   };
 
@@ -1234,9 +1215,8 @@ export default function Main() {
 
    const getAdvice = async (content,type) => {
     //gpt api_key
-    const api_key = '';
-    //const api_key = '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';
-    // const keywords = '커피';
+    const api_key = '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';
+    //const api_key = '';
     const messages = [
       { role: 'system', content: 'You are a helpful assistant.' },
       { role: 'user', content: content },
@@ -1260,20 +1240,24 @@ export default function Main() {
       const response = await fetch('https://api.openai.com/v1/chat/completions', config);
       const data = await response.json();
       const choices = await data.choices;
-      let resultText = '';
-      choices.forEach((choice, index) => {
+      if(choices){
+        let resultText = '';
+        choices.forEach((choice, index) => {
         resultText += `${choice.message.content}\n`;
-      });
-      console.log(resultText);
-      switch (type){
-        case "current":
-          setAdvice(resultText);
-          break;
-        case "shareTwo":
-          setShareTwo(resultText);
-          break;
+        });
+        console.log(resultText);
+        switch (type){
+          case "current":
+            setAdvice(resultText);
+            break;
+          case "shareTwo":
+            setShareTwo(resultText);
+            break;
+        }
       }
-      
+      else{
+        console.log('선택사항이 없습니다.');
+      }
     } catch (error) {
       console.error(error);
     }
@@ -1282,11 +1266,14 @@ export default function Main() {
   useEffect(() => {
     getWeather();
     compareWeather();
-    // 현재 날씨 조언 기능
-    getAdvice('기온'+ TEMP +'도, 미세먼지 '+pmGrade10+'인 날씨에 대한 재밌는 한마디 부탁해',"current");
-    // 공유 메시지 질문을 gpt에게 넘기기
-    getAdvice('기온'+ TEMP +'도, 미세먼지 '+pmGrade10+'인 날씨에 대한 메시지를 소중한 사람에게 보낼 거야. 메시지는 *을 사용해서 감싸줘.',"shareTwo");
-  }, []);
+    
+    if (TEMP !== undefined && pmGrade10 !== undefined) {
+      // 현재 날씨 조언 기능
+      getAdvice('기온' + TEMP + '도, 미세먼지 ' + pmGrade10 + '인 날씨에 대한 재밌는 한마디 부탁해', "current");
+      // 공유 메시지 질문을 gpt에게 넘기기
+      getAdvice('기온' + TEMP + '도, 미세먼지 ' + pmGrade10 + '인 날씨에 대한 메시지를 소중한 사람에게 보낼 거야. 메시지는 *을 사용해서 감싸줘.', "shareTwo");
+    }
+  }, [TEMP, pmGrade10]);
 
   return (
    

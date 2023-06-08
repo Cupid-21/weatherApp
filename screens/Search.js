@@ -236,25 +236,33 @@ const Search = ({ navigation, route }) => {
           const response = await fetch('https://api.openai.com/v1/chat/completions', config);
           const data = await response.json();
           const choices = await data.choices;
-          let resultText = '';
-          choices.forEach((choice, index) => {
-            resultText += `${choice.message.content}\n`;
-          });
-          console.log(resultText);
-          switch (type){
-            case "Temp":
-              setAdviceTemp(resultText);
-              break;
-            case "Wind":
-              setAdviceWind(resultText);
-              break;
-            case "Fall":
-              setAdviceFall(resultText);
-              break;
-            case "Sensory":
-              setAdviceSensory(resultText);
-              break;
+          
+          if (choices){
+            let resultText = '';
+            choices.forEach((choice, index) => {
+              resultText += `${choice.message.content}\n`;
+            });
+            console.log(resultText);
+
+            switch (type){
+              case "Temp":
+                setAdviceTemp(resultText);
+                break;
+              case "Wind":
+                setAdviceWind(resultText);
+                break;
+              case "Fall":
+                setAdviceFall(resultText);
+                break;
+              case "Sensory":
+                setAdviceSensory(resultText);
+                break;
+            }
           }
+          else{
+            console.log('선택사항이 없습니다.');
+          }
+          
           
         } catch (error) {
           console.error(error);
@@ -274,27 +282,36 @@ const Search = ({ navigation, route }) => {
     
     
 
-    useEffect(() => {
+      useEffect(() => {
         getSearchWeather();
         compareWeather();
-        getAdvice('현재 위치의 시간대별 기온'+ gptTemp +'와, 검색지역의 시간대별 기온 '+gptSrcTemp+'을 비교분석 한 뒤에 재밌는 한마디 부탁해',"Temp");
-        getAdvice('현재 위치의 시간대별 풍속'+ gptWind +'와, 검색지역의 시간대별 풍속 '+gptSrcWind+'을 비교분석 한 뒤에 재밌는 한마디 부탁해',"Wind");
-        getAdvice('현재 위치의 시간대별 강수량'+ gptFall +'와, 검색지역의 시간대별 강수량 '+gptSrcFall+'을 비교분석 한 뒤에 재밌는 한마디 부탁해',"Fall");
-        getAdvice('현재 위치의 시간대별 체감온도'+ gptSensory +'와, 검색지역의 시간대별 체감온도 '+gptSrcSensory+'을 비교분석 한 뒤에 재밌는 한마디 부탁해',"Sensory");
-        // bookmarkLocation();
-
-        // const db = SQLite.openDatabase('cupidweather.db');
-        // db.transaction(tx => {
-        //   tx.executeSql(
-        //     'SELECT * FROM favorite ORDER BY id DESC LIMIT 3',
-        //     [],
-        //     (_, { rows }) => {
-        //       for (let i = 0; i < rows.length; i++) {
-        //         console.log(rows.item(i).loc);
-        //       }
-        //     }
-        //   );
-        // });
+        console.log("data 확인", gptTemp, gptSrcTemp);
+        
+        const adviceTypes = [
+          { content: '현재 위치의 시간대별 기온' + gptTemp + '와, 검색지역의 시간대별 기온 ' + gptSrcTemp + '을 비교분석 한 뒤에 재밌는 한마디 부탁해', type: 'Temp' },
+          { content: '현재 위치의 시간대별 풍속' + gptWind + '와, 검색지역의 시간대별 풍속 ' + gptSrcWind + '을 비교분석 한 뒤에 재밌는 한마디 부탁해', type: 'Wind' },
+          { content: '현재 위치의 시간대별 강수량' + gptFall + '와, 검색지역의 시간대별 강수량 ' + gptSrcFall + '을 비교분석 한 뒤에 재밌는 한마디 부탁해', type: 'Fall' },
+          { content: '현재 위치의 시간대별 체감온도' + gptSensory + '와, 검색지역의 시간대별 체감온도 ' + gptSrcSensory + '을 비교분석 한 뒤에 재밌는 한마디 부탁해', type: 'Sensory' }
+        ];
+        
+        let currentIndex = 0;
+        
+        const callGetAdvice = () => {
+          const { content, type } = adviceTypes[currentIndex];
+          getAdvice(content, type);
+          
+          currentIndex++;
+          if (currentIndex < adviceTypes.length) {
+            setTimeout(callGetAdvice, 10000); // 10초 지연 후 다음 호출
+          }
+        };
+        
+        callGetAdvice();
+        
+        return () => {
+          // 정리 함수에서 타이머를 정리
+          clearTimeout(callGetAdvice);
+        };
       }, []);
 
     return (
