@@ -9,6 +9,8 @@ import {
   LineChart,
 } from "react-native-chart-kit";
 
+import * as SQLite from 'expo-sqlite';
+
 // import axios from 'axios';
 
 import { useNavigation } from '@react-navigation/native';
@@ -671,6 +673,12 @@ export default function Main() {
   const [searchLatitude, setLatitude] = useState('');
   const [searchLongitude, setLongitude] = useState('');
 
+  // 즐겨찾기 기능
+  const [favorite1, setFavorite1] = useState();
+  const [favorite2, setFavorite2] = useState();
+  const [favorite3, setFavorite3] = useState();
+
+
   // 주간 최저/최고 기온
   const [tomorrowMin, setTomorrowMin] = useState();
   const [afterTomorrowMin, setAfterTomorrowMin] = useState();
@@ -702,15 +710,176 @@ export default function Main() {
   // const [days, setDays]=useState([]);
   const [ok, setOk] = useState(true);
 
+  
+
   // 검색 기능
   async function searchLocation() {
     const result = locationJson.find(item => item['3단계'] === locationName);
+    const loc=locationName;
     if (result) {
       const { '위도(초/100)': lat, '경도(초/100)': lon } = result;
       const { '1단계' : sido } = result;
       setLatitude(lat);
       setLongitude(lon);
       sidoForPm=modifyRegion(sido);
+      
+      const db = SQLite.openDatabase('weather.db');
+
+      db.transaction(tx => {
+        tx.executeSql(
+          'SELECT * FROM bookmarkloc WHERE loc = ?',
+          [locationName],
+          (_, { rows }) => {
+            if (rows.length === 0) {
+              tx.executeSql(
+                'INSERT INTO bookmarkloc (loc) VALUES (?)',
+                [locationName],
+                (_, { rowsAffected }) => {
+                  if (rowsAffected > 0) {
+                    console.log('Location inserted successfully.');
+                  } else {
+                    console.log('Failed to insert location.');
+                  }
+                }
+              );
+            } else {
+              console.log('Location already exists.');
+            }
+          }
+        );
+
+        tx.executeSql(
+          'SELECT * FROM bookmarkloc',
+          [],
+          (_, { rows }) => {
+            for (let i = 0; i < rows.length; i++) {
+              console.log(rows.item(i).loc);
+            }
+          }
+        );
+
+        tx.executeSql(
+          'SELECT * FROM bookmarkloc ORDER BY id DESC LIMIT 3',
+          [],
+          (_, { rows }) => {
+            var favorites=[];
+            for (let i = 0; i < rows.length; i++) {
+              // console.log(rows.item(i).loc);
+              favorites.push(rows.item(i).loc);
+              // console.log("favorite///", favorites)
+              // setFavorite1(rows.item(i).loc)
+            }
+            console.log(favorites);
+            setFavorite1(favorites[0]);
+            setFavorite2(favorites[1]);
+            setFavorite3(favorites[2]);
+        });
+      });
+      
+      // var favorites=[];
+      // db.transaction(tx => {
+      //   tx.executeSql(
+      //     'SELECT * FROM favoriteregion ORDER BY id DESC LIMIT 3',
+      //     [],
+      //     (_, { rows }) => {
+            
+      //       for (let i = 0; i < rows.length; i++) {
+      //         // console.log(rows.item(i).loc);
+      //         favorites.push(rows.item(i).loc);
+      //         // console.log("favorite///", favorites)
+      //         // setFavorite1(rows.item(i).loc)
+      //       }
+      //       console.log("페이보릿",favorites);
+      //       if (!(favorites.includes(locationName))){
+      //         // console.log(favorites[0]);
+      //         // console.log("in 확인",!(favorites.includes(locationName)));
+      //         tx.executeSql(
+      //           'INSERT INTO favoriteregion (loc) VALUES (?)',
+      //           [locationName]
+      //         );
+      //       }
+      //       setFavorite1(favorites[0]);
+      //       setFavorite2(favorites[1]);
+      //       setFavorite3(favorites[2]);
+      //     }
+      //   );
+      //   tx.executeSql(
+      //     'SELECT * FROM favoriteregion ORDER BY id DESC LIMIT 3',
+      //     [],
+      //     (_, { rows }) => {
+      //       var save=[];
+      //       for (let i = 0; i < rows.length; i++) {
+      //         console.log(rows.item(i).loc);
+      //         save.push(rows.item(i).loc);
+      //         console.log("favorite///", favorites)
+      //         // setFavorite1(rows.item(i).loc)
+      //       }
+      //       // setFavorite1(save[0]);
+      //       // setFavorite2(save[1]);
+      //       // setFavorite3(save[2]);
+      //     }
+      //   );
+      // });
+    
+
+        
+
+            
+
+            // var temp1=favorite1;
+            // var temp2=favorite2;
+            // var temp3=favorite3;
+      // const db = SQLite.openDatabase('cupidweather.db');
+      // db.transaction(tx => {
+      //   tx.executeSql(
+      //     'INSERT INTO favoriteregion (loc) VALUES (?)',
+      //     [locationName]
+      //   );
+
+      //   tx.executeSql(
+      //     'SELECT * FROM favoriteregion ORDER BY id DESC LIMIT 3',
+      //     [],
+      //     (_, { rows }) => {
+      //       var favorites=[];
+      //       for (let i = 0; i < rows.length; i++) {
+      //         console.log(rows.item(i).loc);
+      //         favorites.push(rows.item(i).loc);
+      //         console.log("favorite///", favorites)
+      //         // setFavorite1(rows.item(i).loc)
+      //       }
+      //       var temp1=favorite1;
+      //       var temp2=favorite2;
+      //       var temp3=favorite3;
+
+            // if (favorites[0]==favorites[1]){
+
+            // }
+
+            // else{
+            
+            // }
+          
+
+        
+
+
+
+      // db.transaction(tx => {
+      //   tx.executeSql(
+      //     'SELECT * FROM favorite ORDER BY id DESC LIMIT 3',
+      //     [],
+      //     (_, { rows }) => {
+      //       for (let i = 0; i < rows.length; i++) {
+      //         console.log(rows.item(i).loc);
+      //         favorites.push(rows.item(i).loc);
+      //       }
+      //     }
+      //   );
+      // });
+      // console.log("즐겨찾기 목록",favorites);
+      // setFavorite1(favorites[0]);
+      // setFavorite2(favorites[1]);
+      // setFavorite3(favorites[2]);
 
       // 검색 지역 초단기 api 요청
       const srcUltraSrtUrl = getCurrnetWeatherUrl(lat, lon, "ultraSrt")[0];
@@ -745,7 +914,113 @@ export default function Main() {
                                       searchTmpForTime : searchTmpForTime, searchWindForTime : searchWindForTime,
                                       searchRainForTime : searchRainForTime, searchHumidityForTime : searchHumidityForTime,
                                       vilageJson : vilageJson, srcPmlist : srcPmlist,
-                                      district : district, locationName : locationName });
+                                      district : district, loc : loc });
+
+      console.log("검색 지역 urllll", srcUltraSrtInfo);
+    } else {
+      setLatitude('');
+      setLongitude('');
+    }
+  };
+ 
+   // 검색 기능 for 즐겨찾기
+   async function searchLocationbk(loc) {
+    const result = locationJson.find(item => item['3단계'] === loc);
+    if (result) {
+      const { '위도(초/100)': lat, '경도(초/100)': lon } = result;
+      const { '1단계' : sido } = result;
+      setLatitude(lat);
+      setLongitude(lon);
+      sidoForPm=modifyRegion(sido);
+      
+      const db = SQLite.openDatabase('weather.db');
+
+      db.transaction(tx => {
+        tx.executeSql(
+          'SELECT * FROM bookmarkloc WHERE loc = ?',
+          [locationName],
+          (_, { rows }) => {
+            if (rows.length === 0) {
+              tx.executeSql(
+                'INSERT INTO bookmarkloc (loc) VALUES (?)',
+                [locationName],
+                (_, { rowsAffected }) => {
+                  if (rowsAffected > 0) {
+                    console.log('Location inserted successfully.');
+                  } else {
+                    console.log('Failed to insert location.');
+                  }
+                }
+              );
+            } else {
+              console.log('Location already exists.');
+            }
+          }
+        );
+
+        tx.executeSql(
+          'SELECT * FROM bookmarkloc',
+          [],
+          (_, { rows }) => {
+            for (let i = 0; i < rows.length; i++) {
+              console.log(rows.item(i).loc);
+            }
+          }
+        );
+
+        tx.executeSql(
+          'SELECT * FROM bookmarkloc ORDER BY id DESC LIMIT 3',
+          [],
+          (_, { rows }) => {
+            var favorites=[];
+            for (let i = 0; i < rows.length; i++) {
+              // console.log(rows.item(i).loc);
+              favorites.push(rows.item(i).loc);
+              // console.log("favorite///", favorites)
+              // setFavorite1(rows.item(i).loc)
+            }
+            console.log(favorites);
+            setFavorite1(favorites[0]);
+            setFavorite2(favorites[1]);
+            setFavorite3(favorites[2]);
+        });
+      });
+      
+
+      // 검색 지역 초단기 api 요청
+      const srcUltraSrtUrl = getCurrnetWeatherUrl(lat, lon, "ultraSrt")[0];
+      console.log("검색 지역 초단기 url",srcUltraSrtUrl)
+      const srcUltraSrtResponse = await fetch(srcUltraSrtUrl);
+      const srcUltraSrtJson = await srcUltraSrtResponse.json();
+      //const searchUrl = extractUltraSrtWeather(searchUrl5);
+      const srcUltraSrtInfo=extractUltraSrtWeather(srcUltraSrtJson);
+      //const searchUrl = JSON.stringify(searchUrl3)
+
+      // 검색 지역 단기 api 요청
+      const srcVilageUrl = getCurrnetWeatherUrl(lat, lon,"vilage")[1];
+      console.log("검색 지역 단기 url",srcVilageUrl);
+      const srcVilageResponse = await fetch(srcVilageUrl);
+      const srcVilageJson = await srcVilageResponse.json(); // 응답을 JSON 형태로 파싱
+      const srcVilageInfo=extractVilageWeather(srcVilageJson)[0];
+      const searchTmpForTime=extractVilageWeather(srcVilageJson)[1];
+      const searchWindForTime=extractVilageWeather(srcVilageJson)[2];
+      const searchRainForTime=extractVilageWeather(srcVilageJson)[3];
+      const searchHumidityForTime=extractVilageWeather(srcVilageJson)[4];
+
+      // 검색 지역 미세먼지 api 요청
+      const srcPmUrl = getCurrnetPmUrl(sidoForPm);
+      console.log("검색 지역 pmurl : ",srcPmUrl);
+      var srcPmResponse = await fetch(srcPmUrl);
+      srcPmResponse=await srcPmResponse.text();
+      srcPmlist=await setPm(srcPmResponse);
+      
+
+
+      navigation.navigate('Search', { srcUltraSrtInfo : srcUltraSrtInfo, srcVilageInfo : srcVilageInfo,
+                                      searchTmpForTime : searchTmpForTime, searchWindForTime : searchWindForTime,
+                                      searchRainForTime : searchRainForTime, searchHumidityForTime : searchHumidityForTime,
+                                      vilageJson : vilageJson, srcPmlist : srcPmlist,
+                                      district : district, loc : loc });
 
       console.log("검색 지역 urllll", srcUltraSrtInfo);
     } else {
@@ -1197,13 +1472,41 @@ export default function Main() {
       resizeMode={"contain"}
         />
          </View>
+         </View>
 
-         </View>
          <View style={styles.location}>
-         
-         <Text style={styles.ment}> 아라동 </Text> 
-         <Text style={styles.ment}> 일도이동 </Text> 
+         <Button
+            title='즐겨찾기'
+            onPress={() => {
+              setLocationName(favorite1)
+              searchLocationbk(favorite1);
+            }}
+          ></Button>
+         <Text style={styles.ment}> {favorite1} </Text> 
          </View>
+
+         <View style={styles.location}>
+         <Button
+            title='즐겨찾기'
+            onPress={() => {
+              setLocationName(favorite2)
+              searchLocationbk(favorite2);
+            }}
+          ></Button>
+         <Text style={styles.ment}> {favorite2} </Text>
+         </View>
+
+         <View style={styles.location}>
+         <Button
+            title='즐겨찾기'
+            onPress={() => {
+              setLocationName(favorite3)
+              searchLocationbk(favorite3);
+            }}
+          ></Button>
+         <Text style={styles.ment}> {favorite3} </Text>
+         </View>
+
          </View>
          
 

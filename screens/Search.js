@@ -10,6 +10,7 @@ import { makeData } from './Main';
 import {
     LineChart,
   } from "react-native-chart-kit";
+import * as SQLite from 'expo-sqlite';
 
 
 const {width:screenWidth} = Dimensions.get("window");
@@ -91,10 +92,10 @@ const Search = ({ navigation, route }) => {
     const compareWeather = async () => {
         
         const { srcUltraSrtInfo, srcVilageInfo, searchTmpForTime, searchWindForTime, searchRainForTime, searchHumidityForTime, vilageJson,
-                district, locationName } = route.params;
+                district, loc } = route.params;
 
         setDistrict(district);
-        setLocationName(locationName);
+        setLocationName(loc);
 
         
     
@@ -260,6 +261,19 @@ const Search = ({ navigation, route }) => {
         }
       };
 
+      // const bookmarkLocation = async () => {
+      //   const db = SQLite.openDatabase('weather.db');
+      
+      //   db.transaction(tx => {
+      //     tx.executeSql(
+      //       'CREATE TABLE IF NOT EXISTS bookmarkloc (id INTEGER PRIMARY KEY AUTOINCREMENT, loc TEXT);'
+      //     );
+          
+      //   });
+      // };
+    
+    
+
     useEffect(() => {
         getSearchWeather();
         compareWeather();
@@ -267,6 +281,20 @@ const Search = ({ navigation, route }) => {
         getAdvice('현재 위치의 시간대별 풍속'+ gptWind +'와, 검색지역의 시간대별 풍속 '+gptSrcWind+'을 비교분석 한 뒤에 재밌는 한마디 부탁해',"Wind");
         getAdvice('현재 위치의 시간대별 강수량'+ gptFall +'와, 검색지역의 시간대별 강수량 '+gptSrcFall+'을 비교분석 한 뒤에 재밌는 한마디 부탁해',"Fall");
         getAdvice('현재 위치의 시간대별 체감온도'+ gptSensory +'와, 검색지역의 시간대별 체감온도 '+gptSrcSensory+'을 비교분석 한 뒤에 재밌는 한마디 부탁해',"Sensory");
+        // bookmarkLocation();
+
+        // const db = SQLite.openDatabase('cupidweather.db');
+        // db.transaction(tx => {
+        //   tx.executeSql(
+        //     'SELECT * FROM favorite ORDER BY id DESC LIMIT 3',
+        //     [],
+        //     (_, { rows }) => {
+        //       for (let i = 0; i < rows.length; i++) {
+        //         console.log(rows.item(i).loc);
+        //       }
+        //     }
+        //   );
+        // });
       }, []);
 
     return (
