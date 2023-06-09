@@ -716,6 +716,7 @@ export default function Main() {
   const [isWeatherLoaded, setIsWeatherLoaded] = useState(false);
 
   
+  const db = SQLite.openDatabase('weather.db');
 
   // 검색 기능
   async function searchLocation() {
@@ -728,7 +729,7 @@ export default function Main() {
       setLongitude(lon);
       sidoForPm=modifyRegion(sido);
       
-      const db = SQLite.openDatabase('weather.db');
+      // 
 
       db.transaction(tx => {
         tx.executeSql(
@@ -766,20 +767,43 @@ export default function Main() {
               );
             } else {
               console.log('Location already exists.');
+              // 검색한 지역이 table에 이미 있을 경우 삭제한 뒤 다시 새롭게 추가
+              tx.executeSql(
+                'DELETE FROM bookmarkloc WHERE loc = ?',
+                [locationName],
+                (_, { rowsAffected }) => {
+                  if (rowsAffected > 0) {
+                    console.log('Location deleted successfully.');
+                    tx.executeSql(
+                      'INSERT INTO bookmarkloc (loc) VALUES (?)',
+                      [locationName],
+                      (_, { rowsAffected }) => {
+                        if (rowsAffected > 0) {
+                          console.log('Location inserted successfully.');
+                        } else {
+                          console.log('Failed to insert location.');
+                        }
       
-              // 두 번째 쿼리 실행
-              tx.executeSql( // 
-                'SELECT * FROM bookmarkloc ORDER BY id DESC LIMIT 3',
-                [],
-                (_, { rows }) => {
-                  if (rows.length >= 1) {
-                    setFavorite1(rows.item(0).loc);
-                  }
-                  if (rows.length >= 2) {
-                    setFavorite2(rows.item(1).loc);
-                  }
-                  if (rows.length >= 3) {
-                    setFavorite3(rows.item(2).loc);
+                        // INSERT 이후에 두 번째 쿼리 실행
+                        tx.executeSql(
+                          'SELECT * FROM bookmarkloc ORDER BY id DESC LIMIT 3',
+                          [],
+                          (_, { rows }) => {
+                            if (rows.length >= 1) {
+                              setFavorite1(rows.item(0).loc);
+                            }
+                            if (rows.length >= 2) {
+                              setFavorite2(rows.item(1).loc);
+                            }
+                            if (rows.length >= 3) {
+                              setFavorite3(rows.item(2).loc);
+                            }
+                          }
+                        );
+                      }
+                    );
+                  } else {
+                    console.log('Failed to delete location.');
                   }
                 }
               );
@@ -788,90 +812,7 @@ export default function Main() {
         );
       });
 
-      // db.transaction(tx => {
-      //   tx.executeSql(
-      //     'SELECT * FROM bookmarkloc WHERE loc = ?',
-      //     [locationName],
-      //     (_, { rows }) => {
-      //       if (rows.length === 0) {
-      //         // 테이블에 해당 위치가 저장되어 있지 않을 경우
-      //         tx.executeSql(
-      //           'INSERT INTO bookmarkloc (loc) VALUES (?)',
-      //           [locationName],
-      //           (_, { rowsAffected }) => {
-      //             if (rowsAffected > 0) {
-      //               console.log('Location inserted successfully.');
-      //             } else {
-      //               console.log('Failed to insert location.');
-      //             }
-      
-      //             // 두 번째 쿼리 실행. 순서 보장하기 위해 콜백 함수 내에서 처리
-      //             tx.executeSql(
-      //               'SELECT * FROM bookmarkloc ORDER BY id DESC LIMIT 3',
-      //               [],
-      //               (_, { rows }) => {
-      //                 if (rows.length >= 1) {
-      //                   setFavorite1(rows.item(0).loc);
-      //                 }
-      //                 if (rows.length >= 2) {
-      //                   setFavorite2(rows.item(1).loc);
-      //                 }
-      //                 if (rows.length >= 3) {
-      //                   setFavorite3(rows.item(2).loc);
-      //                 }
-      //               }
-      //             );
-      //           }
-      //         );
-      //       } else {
-      //         console.log('Location already exists.');
-      
-      //         // 해당 위치 삭제
-      //         tx.executeSql(
-      //           'DELETE FROM bookmarkloc WHERE loc = ?',
-      //           [locationName],
-      //           (_, { rowsAffected }) => {
-      //             if (rowsAffected > 0) {
-      //               console.log('Location deleted successfully.');
-      //             } else {
-      //               console.log('Failed to delete location.');
-      //             }
-      
-      //             // 가장 최근 항목으로 다시 추가
-      //             tx.executeSql(
-      //               'INSERT INTO bookmarkloc (loc) SELECT loc FROM bookmarkloc ORDER BY id DESC LIMIT 1',
-      //               [],
-      //               (_, { rowsAffected }) => {
-      //                 if (rowsAffected > 0) {
-      //                   console.log('Location re-added successfully.');
-      //                 } else {
-      //                   console.log('Failed to re-add location.');
-      //                 }
-      
-      //                 // 두 번째 쿼리 실행
-      //                 tx.executeSql(
-      //                   'SELECT * FROM bookmarkloc ORDER BY id DESC LIMIT 3',
-      //                   [],
-      //                   (_, { rows }) => {
-      //                     if (rows.length >= 1) {
-      //                       setFavorite1(rows.item(0).loc);
-      //                     }
-      //                     if (rows.length >= 2) {
-      //                       setFavorite2(rows.item(1).loc);
-      //                     }
-      //                     if (rows.length >= 3) {
-      //                       setFavorite3(rows.item(2).loc);
-      //                     }
-      //                   }
-      //                 );
-      //               }
-      //             );
-      //           }
-      //         );
-      //       }
-      //     }
-      //   );
-      // });
+
 
         
    
@@ -929,7 +870,8 @@ export default function Main() {
       setLongitude(lon);
       sidoForPm=modifyRegion(sido);
       
-      const db = SQLite.openDatabase('weather.db');
+      // const db = SQLite.openDatabase('weather.db');
+
 
       db.transaction(tx => {
         tx.executeSql(
@@ -946,41 +888,58 @@ export default function Main() {
                   } else {
                     console.log('Failed to insert location.');
                   }
+      
+                  // 두 번째 쿼리 실행
+                  tx.executeSql(
+                    'SELECT * FROM bookmarkloc ORDER BY id DESC LIMIT 3',
+                    [],
+                    (_, { rows }) => {
+                      if (rows.length >= 1) {
+                        setFavorite1(rows.item(0).loc);
+                      }
+                      if (rows.length >= 2) {
+                        setFavorite2(rows.item(1).loc);
+                      }
+                      if (rows.length >= 3) {
+                        setFavorite3(rows.item(2).loc);
+                      }
+                    }
+                  );
                 }
               );
             } else {
               console.log('Location already exists.');
+      
+              // 두 번째 쿼리 실행
+              tx.executeSql(
+                'SELECT * FROM bookmarkloc ORDER BY id DESC LIMIT 3',
+                [],
+                (_, { rows }) => {
+                  if (rows.length >= 1) {
+                    setFavorite1(rows.item(0).loc);
+                  }
+                  if (rows.length >= 2) {
+                    setFavorite2(rows.item(1).loc);
+                  }
+                  if (rows.length >= 3) {
+                    setFavorite3(rows.item(2).loc);
+                  }
+                }
+              );
+              tx.executeSql(
+                'SELECT * FROM bookmarkloc',
+                [],
+                (_, { rows }) => {
+                  for (let i = 0; i < rows.length; i++) {
+                    // console.log(rows.item(i).loc);
+                  }
+                }
+              );
             }
           }
         );
-
-        tx.executeSql(
-          'SELECT * FROM bookmarkloc',
-          [],
-          (_, { rows }) => {
-            for (let i = 0; i < rows.length; i++) {
-              console.log(rows.item(i).loc);
-            }
-          }
-        );
-
-        tx.executeSql(
-          'SELECT * FROM bookmarkloc ORDER BY id DESC LIMIT 3',
-          [],
-          (_, { rows }) => {
-            var favorites=[];
-            for (let i = 0; i < rows.length; i++) {
-              // console.log(rows.item(i).loc);
-              favorites.push(rows.item(i).loc);
-              // console.log("favorite///", favorites)
-              // setFavorite1(rows.item(i).loc)
-            }
-            // console.log(favorites);
-            setFavorite1(favorites[0]);
-            setFavorite2(favorites[1]);
-            setFavorite3(favorites[2]);
-        });
       });
+      
       
 
       // 검색 지역 초단기 api 요청
