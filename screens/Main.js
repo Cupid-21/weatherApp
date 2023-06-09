@@ -634,6 +634,13 @@ export async function setPm(pmResponse){
 
 
 export default function Main() {
+  const hot_deer = require('./src/assets/image/Deer.png');
+  const cold_deer = require('./src/assets/image/cold_deer.png');
+  const normal_deer = require('./src/assets/image/nomal_deer.png');
+  const rain_deer = require('./src/assets/image/rain_deer.png');
+  const wind_deer = require('./src/assets/image/wind_deer.png');
+  const [deerImg, setDeerImg]=useState();
+
   const [city, setCity]=useState("Loading...");
   const [subregion, setSubregion]=useState();
   const [district, setDistrict]=useState();
@@ -699,6 +706,9 @@ export default function Main() {
   // const [location, setLocation] = useState();
   // const [days, setDays]=useState([]);
   const [ok, setOk] = useState(true);
+
+  // 이미지 동적 변경을 위한
+  const [isWeatherLoaded, setIsWeatherLoaded] = useState(false);
 
   
 
@@ -1041,14 +1051,32 @@ export default function Main() {
     // console.log("checkkkkkkkk :", typeof(ultraSrtjson));
     ultraSrtWeatherInfo= extractUltraSrtWeather(ultraSrtjson);
     // setHumidity(ultraSrtWeatherInfo.humidity);
-    setSensoryTemp(sensoryTemp(parseFloat(ultraSrtWeatherInfo.temperature),parseFloat(ultraSrtWeatherInfo.humidity)));
-    setRainfall(ultraSrtWeatherInfo.rainfall);
+    setSensoryTemp(sensoryTemp(parseFloat(ultraSrtWeatherInfo.temperature),parseFloat(ultraSrtWeatherInfo.humidity))); // 체감온도
+    setRainfall(ultraSrtWeatherInfo.rainfall); // 강수량
     // console.log("초단기 예보 : ",commentWeather(ultraSrtWeatherInfo,"ultraSrt"));
     // JSON.stringify() : 객체를 직접적으로 React 자식 요소로 사용할 수 없기 때문에 객체를 문자열로 변환
     // .replace(/\"/gi, "") : 따옴표 제거
     setTemp(JSON.stringify(commentWeather(ultraSrtWeatherInfo,"ultraSrt").temperature).replace(/\"/gi, "")); // 기온
     setSky(JSON.stringify(commentWeather(ultraSrtWeatherInfo,"ultraSrt").sky).replace(/\"/gi, "")); // 하늘 상태
     setWind(JSON.stringify(commentWeather(ultraSrtWeatherInfo,"ultraSrt").wind).replace(/\"/gi, "")); // 풍속
+    
+    
+    console.log("**************",typeof(rainfall));
+    console.log("+++++++++",parseInt(TEMP));
+    // if (rainfall!="강수없음"){
+    //   setDeerImg(rain_deer);
+    // }
+    // else{
+    //   if (parseInt(TEMP)>20){
+    //     setDeerImg(hot_deer);
+    //   }
+    //   else{
+    //     setDeerImg(normal_deer);
+    //   }
+    // }
+  
+    setIsWeatherLoaded(true);
+    
     
     
 
@@ -1215,8 +1243,8 @@ export default function Main() {
 
    const getAdvice = async (content,type) => {
     //gpt api_key
-    const api_key = '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';
-    //const api_key = '';
+    // const api_key = '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';
+    const api_key = '';
     const messages = [
       { role: 'system', content: 'You are a helpful assistant.' },
       { role: 'user', content: content },
@@ -1266,6 +1294,8 @@ export default function Main() {
   useEffect(() => {
     getWeather();
     compareWeather();
+
+    
     
     if (TEMP !== undefined && pmGrade10 !== undefined) {
       // 현재 날씨 조언 기능
@@ -1273,7 +1303,26 @@ export default function Main() {
       // 공유 메시지 질문을 gpt에게 넘기기
       getAdvice('기온' + TEMP + '도, 미세먼지 ' + pmGrade10 + '인 날씨에 대한 메시지를 소중한 사람에게 보낼 거야. 메시지는 *을 사용해서 감싸줘.', "shareTwo");
     }
+
   }, [TEMP, pmGrade10]);
+
+  // rainfall과 TEMP의 값이 변경되었을 때에만 setDeerImg() 함수 호출되도록 함
+  useEffect(() => {
+    if (rainfall !== "강수없음") {
+      setDeerImg(rain_deer);
+    } else if (parseInt(wind) > 7) {
+      setDeerImg(wind_deer);
+    } else {
+      if (parseInt(TEMP) > 19) {
+        setDeerImg(hot_deer);
+      } else if (parseInt(TEMP) > 9){
+        setDeerImg(normal_deer);
+      } else {
+        setDeerImg(cold_deer);
+      }
+    }
+    
+  }, [rainfall, TEMP, wind]);
 
   return (
    
@@ -1326,12 +1375,24 @@ export default function Main() {
      {/* 캐릭터 이미지 */}
 
           <View style={styles.image}>
+            {isWeatherLoaded && ( // 기온과 강수량이 로딩된 후에 이미지가 렌더링 되도록 변경
+            <Image
+              style={styles.image}
+              source={deerImg}
+              resizeMode={"contain"}
+            />
+            )}
+          </View>
+          
+          {/* <View style={styles.image}>
           <Image
       style={styles.image}
-      source={require('./src/assets/image/Deer.png')}
+      source={cold_deer}
+      // source={require('./src/assets/image/Deer.png')}
+      // source={require('./src/assets/image/cold_deer.PNG')}
       resizeMode={"contain"}
         />
-          </View>
+          </View> */}
           </View>
           
           
