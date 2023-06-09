@@ -642,8 +642,12 @@ export default function Main() {
   const wind_deer = require('./src/assets/image/wind_deer.png');
   const [deerImg, setDeerImg]=useState();
 
+  // 배경색
+  const [backLiner, setBackLiner] = useState();
+
   // 미세먼지 이미지
   const dustcloud = require('./src/assets/image/wether-icon/dust.png');
+  const cleancloud = require('./src/assets/image/wether-icon/clean.png');
   const [cloudImg, setCloudImg]=useState();
 
   const [city, setCity]=useState("Loading...");
@@ -1281,6 +1285,8 @@ export default function Main() {
     } else {
       if (parseInt(TEMP) > 19) {
         setDeerImg(hot_deer);
+        setBackLiner('#ffcc80');
+        console.log("--------------------",backLiner);
       } else if (parseInt(TEMP) > 9){
         setDeerImg(normal_deer);
       } else {
@@ -1292,7 +1298,7 @@ export default function Main() {
 
   useEffect(() => {
     if (pmGrade10 == "좋음" || pmGrade10 == "보통"){
-      setCloudImg(dustcloud);
+      setCloudImg(cleancloud);
     }
     else{
       setCloudImg(dustcloud);
@@ -1300,9 +1306,33 @@ export default function Main() {
     
   }, [pmGrade10]);
 
+  useEffect(() => {
+    const db = SQLite.openDatabase('weather.db');
+    db.transaction(tx => {
+      tx.executeSql(
+        'SELECT * FROM bookmarkloc ORDER BY id DESC LIMIT 3',
+        [],
+        (_, { rows }) => {
+          if (rows.length >= 1) {
+            setFavorite1(rows.item(0).loc);
+          }
+          if (rows.length >= 2) {
+            setFavorite2(rows.item(1).loc);
+          }
+          if (rows.length >= 3) {
+            setFavorite3(rows.item(2).loc);
+          }
+        }
+      );
+    })
+  }, []);
+
   return (
    
-      <LinearGradient colors={['#2980B9', '#6DD5FA',]} start={[0.1, 0.2]} style={styles.container}>
+      // <LinearGradient colors={['#2980B9', '#6DD5FA',]} start={[0.1, 0.2]} style={styles.container}>
+      
+      <LinearGradient colors={[backLiner, '#6DD5FA',]} start={[0.1, 0.2]} style={styles.container}>
+      
       <StatusBar style="light"></StatusBar>
 
 
@@ -1503,35 +1533,35 @@ export default function Main() {
 
          <View style={styles.location}>
          <Button
-            title='즐겨찾기'
+            title={favorite1}
             onPress={() => {
               setLocationName(favorite1)
               searchLocationbk(favorite1);
             }}
           ></Button>
-         <Text style={styles.ment}> {favorite1} </Text> 
+         {/* <Text style={styles.ment}> {favorite1} </Text>  */}
          </View>
 
          <View style={styles.location}>
          <Button
-            title='즐겨찾기'
+            title={favorite2}
             onPress={() => {
               setLocationName(favorite2)
               searchLocationbk(favorite2);
             }}
           ></Button>
-         <Text style={styles.ment}> {favorite2} </Text>
+         {/* <Text style={styles.ment}> {favorite2} </Text> */}
          </View>
 
          <View style={styles.location}>
          <Button
-            title='즐겨찾기'
+            title={favorite3}
             onPress={() => {
               setLocationName(favorite3)
               searchLocationbk(favorite3);
             }}
           ></Button>
-         <Text style={styles.ment}> {favorite3} </Text>
+         {/* <Text style={styles.ment}> {favorite3} </Text> */}
          </View>
 
          </View>
