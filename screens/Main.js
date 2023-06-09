@@ -634,12 +634,17 @@ export async function setPm(pmResponse){
 
 
 export default function Main() {
+  // deer 이미지
   const hot_deer = require('./src/assets/image/Deer.png');
   const cold_deer = require('./src/assets/image/cold_deer.png');
   const normal_deer = require('./src/assets/image/nomal_deer.png');
   const rain_deer = require('./src/assets/image/rain_deer.png');
   const wind_deer = require('./src/assets/image/wind_deer.png');
   const [deerImg, setDeerImg]=useState();
+
+  // 미세먼지 이미지
+  const dustcloud = require('./src/assets/image/wether-icon/dust.png');
+  const [cloudImg, setCloudImg]=useState();
 
   const [city, setCity]=useState("Loading...");
   const [subregion, setSubregion]=useState();
@@ -1075,14 +1080,14 @@ export default function Main() {
     //   }
     // }
   
-    setIsWeatherLoaded(true);
+    
     
     
     
 
     // 단기 예보 api url
     const vilageUrl = getCurrnetWeatherUrl(latitude, longitude,"vilage")[1];
-    // console.log("단기예보 url",vilageUrl);
+    console.log("단기예보 url",vilageUrl);
     const vilageResponse = await fetch(vilageUrl);
     const vilageJson = await vilageResponse.json(); // 응답을 JSON 형태로 파싱
     setVilageJson(vilageJson);
@@ -1106,6 +1111,8 @@ export default function Main() {
     setPmGrade25(pmlist[1]);
     setPmValue10(pmlist[2]);
     setPmValue25(pmlist[3]);
+
+    setIsWeatherLoaded(true);
 
 
     // 오늘, 내일, 모레 최저/최고 기온
@@ -1324,6 +1331,16 @@ export default function Main() {
     
   }, [rainfall, TEMP, wind]);
 
+  useEffect(() => {
+    if (pmGrade10 == "좋음" || pmGrade10 == "보통"){
+      setCloudImg(dustcloud);
+    }
+    else{
+      setCloudImg(dustcloud);
+    }
+    
+  }, [pmGrade10]);
+
   return (
    
       <LinearGradient colors={['#2980B9', '#6DD5FA',]} start={[0.1, 0.2]} style={styles.container}>
@@ -1481,15 +1498,18 @@ export default function Main() {
         </>
       
 
-
+        
       
       {/*  미세 먼지  */}
       <View style={styles.dustPad}>
-      <Image
-      style={styles.dustIcon}
-      source={require('./src/assets/image/wether-icon/dust.png')}
-      resizeMode={"contain"}
-        />
+        {isWeatherLoaded && (
+          <Image
+          style={styles.dustIcon}
+          source={cloudImg}
+          resizeMode={"contain"}
+            />
+        )}
+      
         <View style={styles.dustData}>
         <View styel={styles.column}>
         <Text style={styles.pmGrade}> 미세먼지 </Text> 
