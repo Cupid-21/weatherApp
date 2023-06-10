@@ -9,6 +9,8 @@ import {
   LineChart,
 } from "react-native-chart-kit";
 
+import * as SQLite from 'expo-sqlite';
+
 // import axios from 'axios';
 
 import { useNavigation } from '@react-navigation/native';
@@ -16,28 +18,48 @@ import {LinearGradient} from 'expo-linear-gradient';
 import useCachedResources from "./useCachedResources";
 //npx expo install expo-linear-gradient
 
+// import * as SQLite from 'expo-sqlite';
+// import * as FileSystem from 'expo-file-system';
+
+// const db = SQLite.openDatabase('db.db');
+// console.log(db);
+// db.transaction(tx => {
+//   tx.executeSql(
+//     'CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, age INTEGER)'
+//   );
+//   tx.executeSql(
+//     'INSERT INTO users (name, age) VALUES (?, ?)',
+//     ['John Doe', 25]
+//   );
+// });
+
+// db.transaction(tx => {
+//   tx.executeSql(
+//     'SELECT * FROM users',
+//     [],
+//     (_, { rows }) => {
+//       for (let i = 0; i < rows.length; i++) {
+//         console.log("????",rows.item(i));
+//       }
+//     }
+//   );
+// });
+
+// const dataDirectory = FileSystem.documentDirectory;
+// const databasePath = `${dataDirectory}db.db`;
+// console.log(databasePath);
+
 const chartHeight = Dimensions.get('window').height;
 const chartWidth = Dimensions.get('window').width;
 
 
 const {width:SCREEN_WIDTH} = Dimensions.get("window");
-console.log(SCREEN_WIDTH);
+// console.log(SCREEN_WIDTH);
 
 // api key
 const serviceKey = 'DHAcdCIG92vecEcQDukq%2B%2Fn8eWJtPZ9jKZ3isc%2FWrsnaFK1ZMGLQraTGzmMhDIQLj%2FZCUSkvmj1BgKChWFkbjw%3D%3D';
-                    
 const locationJson = require('../data.json');
 
-
-
-// const location = searchLocation("청운효자동");
-// if (location) {
-//   const { latitude, longitude } = location;
-//   console.log("위도:", latitude);
-//   console.log("경도:", longitude);
-// } else {
-//   console.log("지역을 찾을 수 없습니다.");
-// }
 
 // 초단기예보 : 현재 시각에서 1시간 빼줌 (예외처리 : 23시)
 // 단기예보 : 어제 날짜, 23시로 지정
@@ -311,9 +333,47 @@ export function extractVilageWeather(json){
       }
     }
   });
-  console.log("강수량 데이터 확인:",rainfortime);
+  // console.log("강수량 데이터 확인:",rainfortime);
   return [weatherInfo, tmpfortime, windfortime, rainfortime, humidityfortime];
 };
+
+// 주간(내일, 모레) 최저, 최고 기온 추출
+export function extractVilageWeekWeather(json){
+  const items = json.response.body.items.item;
+  let maximumTemp = [];
+  let minimumTemp = [];
+  items.forEach((dic)=>{
+    if (dic["category"]=='TMN'){ // 최저 기온
+      minimumTemp.push(dic["fcstValue"]);
+    }
+    if (dic["category"]=='TMX'){ //최고 기온
+      maximumTemp.push(dic["fcstValue"]);
+    }
+  });
+  // console.log("최저기온리스트 확인:",minimumTemp);
+  // console.log("최고기온리스트 확인:",maximumTemp);
+  return [minimumTemp, maximumTemp];
+};
+
+// 주간(3일 후~9일 후) 최저, 최고 기온 추출
+export function extractVilageWeekWeather3(json){
+  const item = json.response.body.items.item[0];
+  let maximumTemp = [];
+  let minimumTemp = [];
+
+  for (let i = 3; i <= 10; i++) {
+    const taMinKey = `taMin${i}`;
+    const taMaxKey = `taMax${i}`;
+    const taMinValue = item[taMinKey];
+    const taMaxValue = item[taMaxKey];
+  
+    minimumTemp.push(taMinValue);
+    maximumTemp.push(taMaxValue);
+  
+  }
+  return [minimumTemp, maximumTemp];
+};
+
 
 function extractPm(grade){
   if (grade==1){
@@ -379,6 +439,30 @@ export function commentWeather(weatherDict,apiType){
   }
   return commentDict; 
 }
+function getDayofweek(){
+  var d = new Date();
+  var weekday = new Array(7);
+  weekday[0] = "Sun";
+  weekday[1] = "Mon";
+  weekday[2] = "Tue";
+  weekday[3] = "Wed";
+  weekday[4] = "Thu";
+  weekday[5] = "Fri";
+  weekday[6] = "Sat";
+
+  today=d.getDay() // 1
+  var weekly=[];
+
+  for(let i=0 ; i<7 ; i++){
+    if (today==7){
+      today=0;
+    }
+    weekly.push(weekday[today]);
+    today+=1;
+    // console.log(weekly);
+  }
+  return weekly;
+}
 
 // 초단기예보, 단기예보 api
 function getCurrnetWeatherUrl(latitude, longitude, apiType){
@@ -392,6 +476,7 @@ function getCurrnetWeatherUrl(latitude, longitude, apiType){
   var day = currentDate.getDate().toString().padStart(2, '0');
   var hours = currentDate.getHours().toString().padStart(2, '0');
   var minutes = currentDate.getMinutes().toString().padStart(2, '0');
+  const base_date2 = `${year}${month}${day}`;
 
   var modifiedTime;
   if (apiType=="vilage"){
@@ -404,7 +489,8 @@ function getCurrnetWeatherUrl(latitude, longitude, apiType){
   hours=modifiedTime[0];
   day=modifiedTime[1];
 
-  const base_date = `${year}${month}${day}`;
+  var base_date = `${year}${month}${day}`;
+  
   const base_time = `${hours}${minutes}`;
 
   var rs = dfs_xy_conv("toXY",latitude.toString(),longitude.toString());
@@ -412,8 +498,11 @@ function getCurrnetWeatherUrl(latitude, longitude, apiType){
   const nx = rs.x;
   const ny = rs.y;
   
+  
   return [`http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getUltraSrtFcst?serviceKey=${serviceKey}&numOfRows=60&pageNo=1&base_date=${base_date}&base_time=${base_time}&nx=${nx}&ny=${ny}&dataType=json`,
-          `http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst?serviceKey=${serviceKey}&numOfRows=290&pageNo=1&base_date=${base_date}&base_time=2300&nx=${nx}&ny=${ny}&dataType=json`];
+          `http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst?serviceKey=${serviceKey}&numOfRows=290&pageNo=1&base_date=${base_date}&base_time=2300&nx=${nx}&ny=${ny}&dataType=json`,
+          `http://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst?serviceKey=${serviceKey}&numOfRows=882&pageNo=1&base_date=${base_date}&base_time=2300&nx=${nx}&ny=${ny}&dataType=json`,
+          `https://apis.data.go.kr/1360000/MidFcstInfoService/getMidTa?serviceKey=${serviceKey}&pageNo=1&numOfRows=10&dataType=JSON&regId=11G00201&tmFc=${base_date2}0600`];
 }
 
 function getCurrnetPmUrl(region){
@@ -423,7 +512,7 @@ function getCurrnetPmUrl(region){
 }
 
 export function sensoryTemp(temp,humidity){
-  console.log("기온,습도",temp,humidity);
+  // console.log("기온,습도",temp,humidity);
   let Tw=temp*Math.atan(0.151977*Math.sqrt(humidity+8.313659)); //Tw(습구온도)
   Tw += Math.atan(temp+humidity);
   Tw -= Math.atan(humidity-1.67633);
@@ -459,7 +548,7 @@ export function makeData(currentTmpForTime){
     values.push(parseInt(value));
   });
   // console.log(values);
-  console.log("makeData 확인",typeof(values[0]));
+  // console.log("makeData 확인",typeof(values[0]));
   return values;
 }
 
@@ -474,7 +563,7 @@ export function makeSensoryData(tmpList,humidityList){
 }
 
 
-//const {width:screenWidth} = Dimensions.get("window");
+const {width:screenWidth} = Dimensions.get("window");
 
 const chartConfig = {
   backgroundGradientFrom: "#1E2923",
@@ -542,6 +631,24 @@ export async function setPm(pmResponse){
 
 
 export default function Main() {
+  // deer 이미지
+  const hot_deer = require('./src/assets/image/Deer.png');
+  const cold_deer = require('./src/assets/image/cold_deer.png');
+  const normal_deer = require('./src/assets/image/nomal_deer.png');
+  const rain_deer = require('./src/assets/image/rain_deer.png');
+  const wind_deer = require('./src/assets/image/wind_deer.png');
+  const [deerImg, setDeerImg]=useState();
+  
+  // 배경색
+  const [backLiner, setBackLiner] = useState();
+
+  //미세먼지 배경색
+  const [dustbackLiner, setDustbackLiner] = useState();
+
+  // 미세먼지 이미지
+  const dustcloud = require('./src/assets/image/weather-icon/dust.png');
+  const [cloudImg, setCloudImg]=useState();
+
   const [city, setCity]=useState("Loading...");
   const [subregion, setSubregion]=useState();
   const [district, setDistrict]=useState();
@@ -557,7 +664,8 @@ export default function Main() {
   const [pmGrade25, setPmGrade25]=useState();
   const [pmValue10, setPmValue10]=useState();
   const [pmValue25, setPmValue25]=useState();
-  // const [tempData, setTempData]=useState(null);
+
+  const [tempData, setTempData]=useState(null);
   const [windData, setWindData]=useState(null);
   const [rainData, setRainData]=useState(null);
   const [sensoryData, setSensoryData]=useState(null);
@@ -569,6 +677,31 @@ export default function Main() {
   const [locationName, setLocationName] = useState('');
   const [searchLatitude, setLatitude] = useState('');
   const [searchLongitude, setLongitude] = useState('');
+
+  // 즐겨찾기 기능
+  const [favorite1, setFavorite1] = useState();
+  const [favorite2, setFavorite2] = useState();
+  const [favorite3, setFavorite3] = useState();
+
+
+  // 주간 최저/최고 기온
+  const [tomorrowMin, setTomorrowMin] = useState();
+  const [afterTomorrowMin, setAfterTomorrowMin] = useState();
+  const [tomorrowMax, setTomorrowMax] = useState();
+  const [afterTomorrowMax, setAfterTomorrowMax] = useState();
+  const [min3, setMin3] = useState();
+  const [max3, setMax3] = useState();
+  const [min4, setMin4] = useState();
+  const [max4, setMax4] = useState();
+  const [min5, setMin5] = useState();
+  const [max5, setMax5] = useState();
+  const [min6, setMin6] = useState();
+  const [max6, setMax6] = useState();
+  
+  const [dayofweek3, setDayofweek3] = useState(); 
+  const [dayofweek4, setDayofweek4] = useState(); 
+  const [dayofweek5, setDayofweek5] = useState(); 
+  const [dayofweek6, setDayofweek6] = useState(); 
 
   const isLoaded = useCachedResources();
 
@@ -582,19 +715,182 @@ export default function Main() {
   // const [days, setDays]=useState([]);
   const [ok, setOk] = useState(true);
 
+  // 이미지 동적 변경을 위한
+  const [isWeatherLoaded, setIsWeatherLoaded] = useState(false);
+
+  //저녁 시간 배경
+  //  const [real, setReal] = useState();
+  //  useEffect(() => {
+  //   if (real >= 21) {
+  //     setBackLiner("#1a237e");
+  //   }
+  // }, [real]);
+
+
+
   // 검색 기능
   async function searchLocation() {
     const result = locationJson.find(item => item['3단계'] === locationName);
+    const loc=locationName;
     if (result) {
       const { '위도(초/100)': lat, '경도(초/100)': lon } = result;
       const { '1단계' : sido } = result;
       setLatitude(lat);
       setLongitude(lon);
       sidoForPm=modifyRegion(sido);
+      
+      const db = SQLite.openDatabase('weather.db');
+
+      db.transaction(tx => {
+        tx.executeSql(
+          'SELECT * FROM bookmarkloc WHERE loc = ?',
+          [locationName],
+          (_, { rows }) => {
+            if (rows.length === 0) { // 테이블에 해당 위치가 저장되어 있지 않을 경우
+              tx.executeSql(
+                'INSERT INTO bookmarkloc (loc) VALUES (?)', // 위치 insert
+                [locationName],
+                (_, { rowsAffected }) => {
+                  if (rowsAffected > 0) {
+                    console.log('Location inserted successfully.');
+                  } else {
+                    console.log('Failed to insert location.');
+                  }
+      
+                  // 두 번째 쿼리 실행. 순서 보장하기 위해 콜백 함수 내에서 처리
+                  tx.executeSql(
+                    'SELECT * FROM bookmarkloc ORDER BY id DESC LIMIT 3', // 최근에 추가된 값 3개 내림차순으로 가져와서 즐겨찾기 목록에 추가
+                    [],
+                    (_, { rows }) => {
+                      if (rows.length >= 1) {
+                        setFavorite1(rows.item(0).loc);
+                      }
+                      if (rows.length >= 2) {
+                        setFavorite2(rows.item(1).loc);
+                      }
+                      if (rows.length >= 3) {
+                        setFavorite3(rows.item(2).loc);
+                      }
+                    }
+                  );
+                }
+              );
+            } else {
+              console.log('Location already exists.');
+      
+              // 두 번째 쿼리 실행
+              tx.executeSql( // 
+                'SELECT * FROM bookmarkloc ORDER BY id DESC LIMIT 3',
+                [],
+                (_, { rows }) => {
+                  if (rows.length >= 1) {
+                    setFavorite1(rows.item(0).loc);
+                  }
+                  if (rows.length >= 2) {
+                    setFavorite2(rows.item(1).loc);
+                  }
+                  if (rows.length >= 3) {
+                    setFavorite3(rows.item(2).loc);
+                  }
+                }
+              );
+            }
+          }
+        );
+      });
+
+      // db.transaction(tx => {
+      //   tx.executeSql(
+      //     'SELECT * FROM bookmarkloc WHERE loc = ?',
+      //     [locationName],
+      //     (_, { rows }) => {
+      //       if (rows.length === 0) {
+      //         // 테이블에 해당 위치가 저장되어 있지 않을 경우
+      //         tx.executeSql(
+      //           'INSERT INTO bookmarkloc (loc) VALUES (?)',
+      //           [locationName],
+      //           (_, { rowsAffected }) => {
+      //             if (rowsAffected > 0) {
+      //               console.log('Location inserted successfully.');
+      //             } else {
+      //               console.log('Failed to insert location.');
+      //             }
+      
+      //             // 두 번째 쿼리 실행. 순서 보장하기 위해 콜백 함수 내에서 처리
+      //             tx.executeSql(
+      //               'SELECT * FROM bookmarkloc ORDER BY id DESC LIMIT 3',
+      //               [],
+      //               (_, { rows }) => {
+      //                 if (rows.length >= 1) {
+      //                   setFavorite1(rows.item(0).loc);
+      //                 }
+      //                 if (rows.length >= 2) {
+      //                   setFavorite2(rows.item(1).loc);
+      //                 }
+      //                 if (rows.length >= 3) {
+      //                   setFavorite3(rows.item(2).loc);
+      //                 }
+      //               }
+      //             );
+      //           }
+      //         );
+      //       } else {
+      //         console.log('Location already exists.');
+      
+      //         // 해당 위치 삭제
+      //         tx.executeSql(
+      //           'DELETE FROM bookmarkloc WHERE loc = ?',
+      //           [locationName],
+      //           (_, { rowsAffected }) => {
+      //             if (rowsAffected > 0) {
+      //               console.log('Location deleted successfully.');
+      //             } else {
+      //               console.log('Failed to delete location.');
+      //             }
+      
+      //             // 가장 최근 항목으로 다시 추가
+      //             tx.executeSql(
+      //               'INSERT INTO bookmarkloc (loc) SELECT loc FROM bookmarkloc ORDER BY id DESC LIMIT 1',
+      //               [],
+      //               (_, { rowsAffected }) => {
+      //                 if (rowsAffected > 0) {
+      //                   console.log('Location re-added successfully.');
+      //                 } else {
+      //                   console.log('Failed to re-add location.');
+      //                 }
+      
+      //                 // 두 번째 쿼리 실행
+      //                 tx.executeSql(
+      //                   'SELECT * FROM bookmarkloc ORDER BY id DESC LIMIT 3',
+      //                   [],
+      //                   (_, { rows }) => {
+      //                     if (rows.length >= 1) {
+      //                       setFavorite1(rows.item(0).loc);
+      //                     }
+      //                     if (rows.length >= 2) {
+      //                       setFavorite2(rows.item(1).loc);
+      //                     }
+      //                     if (rows.length >= 3) {
+      //                       setFavorite3(rows.item(2).loc);
+      //                     }
+      //                   }
+      //                 );
+      //               }
+      //             );
+      //           }
+      //         );
+      //       }
+      //     }
+      //   );
+      // });
+
+        
+   
+      
 
       // 검색 지역 초단기 api 요청
       const srcUltraSrtUrl = getCurrnetWeatherUrl(lat, lon, "ultraSrt")[0];
-      console.log("검색 지역 초단기 url",srcUltraSrtUrl)
+      // console.log("검색 지역 초단기 url",srcUltraSrtUrl)
       const srcUltraSrtResponse = await fetch(srcUltraSrtUrl);
       const srcUltraSrtJson = await srcUltraSrtResponse.json();
       //const searchUrl = extractUltraSrtWeather(searchUrl5);
@@ -603,7 +899,7 @@ export default function Main() {
 
       // 검색 지역 단기 api 요청
       const srcVilageUrl = getCurrnetWeatherUrl(lat, lon,"vilage")[1];
-      console.log("검색 지역 단기 url",srcVilageUrl);
+      // console.log("검색 지역 단기 url",srcVilageUrl);
       const srcVilageResponse = await fetch(srcVilageUrl);
       const srcVilageJson = await srcVilageResponse.json(); // 응답을 JSON 형태로 파싱
       const srcVilageInfo=extractVilageWeather(srcVilageJson)[0];
@@ -614,7 +910,7 @@ export default function Main() {
 
       // 검색 지역 미세먼지 api 요청
       const srcPmUrl = getCurrnetPmUrl(sidoForPm);
-      console.log("검색 지역 pmurl : ",srcPmUrl);
+      // console.log("검색 지역 pmurl : ",srcPmUrl);
       var srcPmResponse = await fetch(srcPmUrl);
       srcPmResponse=await srcPmResponse.text();
       srcPmlist=await setPm(srcPmResponse);
@@ -624,9 +920,116 @@ export default function Main() {
       navigation.navigate('Search', { srcUltraSrtInfo : srcUltraSrtInfo, srcVilageInfo : srcVilageInfo,
                                       searchTmpForTime : searchTmpForTime, searchWindForTime : searchWindForTime,
                                       searchRainForTime : searchRainForTime, searchHumidityForTime : searchHumidityForTime,
-                                      vilageJson : vilageJson, srcPmlist : srcPmlist });
+                                      vilageJson : vilageJson, srcPmlist : srcPmlist,
+                                      district : district, loc : loc });
 
-      console.log("검색 지역 urllll", srcUltraSrtInfo);
+      // console.log("검색 지역 urllll", srcUltraSrtInfo);
+    } else {
+      setLatitude('');
+      setLongitude('');
+    }
+  };
+ 
+   // 검색 기능 for 즐겨찾기
+   async function searchLocationbk(loc) {
+    const result = locationJson.find(item => item['3단계'] === loc);
+    if (result) {
+      const { '위도(초/100)': lat, '경도(초/100)': lon } = result;
+      const { '1단계' : sido } = result;
+      setLatitude(lat);
+      setLongitude(lon);
+      sidoForPm=modifyRegion(sido);
+      
+      const db = SQLite.openDatabase('weather.db');
+
+      db.transaction(tx => {
+        tx.executeSql(
+          'SELECT * FROM bookmarkloc WHERE loc = ?',
+          [locationName],
+          (_, { rows }) => {
+            if (rows.length === 0) {
+              tx.executeSql(
+                'INSERT INTO bookmarkloc (loc) VALUES (?)',
+                [locationName],
+                (_, { rowsAffected }) => {
+                  if (rowsAffected > 0) {
+                    console.log('Location inserted successfully.');
+                  } else {
+                    console.log('Failed to insert location.');
+                  }
+                }
+              );
+            } else {
+              console.log('Location already exists.');
+            }
+          }
+        );
+
+        tx.executeSql(
+          'SELECT * FROM bookmarkloc',
+          [],
+          (_, { rows }) => {
+            for (let i = 0; i < rows.length; i++) {
+              console.log(rows.item(i).loc);
+            }
+          }
+        );
+
+        tx.executeSql(
+          'SELECT * FROM bookmarkloc ORDER BY id DESC LIMIT 3',
+          [],
+          (_, { rows }) => {
+            var favorites=[];
+            for (let i = 0; i < rows.length; i++) {
+              // console.log(rows.item(i).loc);
+              favorites.push(rows.item(i).loc);
+              // console.log("favorite///", favorites)
+              // setFavorite1(rows.item(i).loc)
+            }
+            // console.log(favorites);
+            setFavorite1(favorites[0]);
+            setFavorite2(favorites[1]);
+            setFavorite3(favorites[2]);
+        });
+      });
+      
+
+      // 검색 지역 초단기 api 요청
+      const srcUltraSrtUrl = getCurrnetWeatherUrl(lat, lon, "ultraSrt")[0];
+      // console.log("검색 지역 초단기 url",srcUltraSrtUrl)
+      const srcUltraSrtResponse = await fetch(srcUltraSrtUrl);
+      const srcUltraSrtJson = await srcUltraSrtResponse.json();
+      //const searchUrl = extractUltraSrtWeather(searchUrl5);
+      const srcUltraSrtInfo=extractUltraSrtWeather(srcUltraSrtJson);
+      //const searchUrl = JSON.stringify(searchUrl3)
+
+      // 검색 지역 단기 api 요청
+      const srcVilageUrl = getCurrnetWeatherUrl(lat, lon,"vilage")[1];
+      // console.log("검색 지역 단기 url",srcVilageUrl);
+      const srcVilageResponse = await fetch(srcVilageUrl);
+      const srcVilageJson = await srcVilageResponse.json(); // 응답을 JSON 형태로 파싱
+      const srcVilageInfo=extractVilageWeather(srcVilageJson)[0];
+      const searchTmpForTime=extractVilageWeather(srcVilageJson)[1];
+      const searchWindForTime=extractVilageWeather(srcVilageJson)[2];
+      const searchRainForTime=extractVilageWeather(srcVilageJson)[3];
+      const searchHumidityForTime=extractVilageWeather(srcVilageJson)[4];
+
+      // 검색 지역 미세먼지 api 요청
+      const srcPmUrl = getCurrnetPmUrl(sidoForPm);
+      // console.log("검색 지역 pmurl : ",srcPmUrl);
+      var srcPmResponse = await fetch(srcPmUrl);
+      srcPmResponse=await srcPmResponse.text();
+      srcPmlist=await setPm(srcPmResponse);
+      
+
+
+      navigation.navigate('Search', { srcUltraSrtInfo : srcUltraSrtInfo, srcVilageInfo : srcVilageInfo,
+                                      searchTmpForTime : searchTmpForTime, searchWindForTime : searchWindForTime,
+                                      searchRainForTime : searchRainForTime, searchHumidityForTime : searchHumidityForTime,
+                                      vilageJson : vilageJson, srcPmlist : srcPmlist,
+                                      district : district, loc : loc });
+
+      // console.log("검색 지역 urllll", srcUltraSrtInfo);
     } else {
       setLatitude('');
       setLongitude('');
@@ -657,21 +1060,39 @@ export default function Main() {
 
     // 초단기 예보 api url
     const ultraSrtUrl = await getCurrnetWeatherUrl(latitude, longitude,"ultraSrt")[0];
-    console.log("초단기예보api url",ultraSrtUrl);
+    // console.log("초단기예보api url",ultraSrtUrl);
     
     const ultraSrtResponse = await fetch(ultraSrtUrl);
     const ultraSrtjson = await ultraSrtResponse.json(); // 응답을 JSON 형태로 파싱
-    console.log("checkkkkkkkk :", typeof(ultraSrtjson));
+    // console.log("checkkkkkkkk :", typeof(ultraSrtjson));
     ultraSrtWeatherInfo= extractUltraSrtWeather(ultraSrtjson);
     // setHumidity(ultraSrtWeatherInfo.humidity);
-    setSensoryTemp(sensoryTemp(parseFloat(ultraSrtWeatherInfo.temperature),parseFloat(ultraSrtWeatherInfo.humidity)));
-    setRainfall(ultraSrtWeatherInfo.rainfall);
-    console.log("초단기 예보 : ",commentWeather(ultraSrtWeatherInfo,"ultraSrt"));
+    setSensoryTemp(sensoryTemp(parseFloat(ultraSrtWeatherInfo.temperature),parseFloat(ultraSrtWeatherInfo.humidity))); // 체감온도
+    setRainfall(ultraSrtWeatherInfo.rainfall); // 강수량
+    // console.log("초단기 예보 : ",commentWeather(ultraSrtWeatherInfo,"ultraSrt"));
     // JSON.stringify() : 객체를 직접적으로 React 자식 요소로 사용할 수 없기 때문에 객체를 문자열로 변환
     // .replace(/\"/gi, "") : 따옴표 제거
     setTemp(JSON.stringify(commentWeather(ultraSrtWeatherInfo,"ultraSrt").temperature).replace(/\"/gi, "")); // 기온
     setSky(JSON.stringify(commentWeather(ultraSrtWeatherInfo,"ultraSrt").sky).replace(/\"/gi, "")); // 하늘 상태
     setWind(JSON.stringify(commentWeather(ultraSrtWeatherInfo,"ultraSrt").wind).replace(/\"/gi, "")); // 풍속
+    
+    
+    console.log("**************",typeof(rainfall));
+    console.log("+++++++++",parseInt(TEMP));
+    // if (rainfall!="강수없음"){
+    //   setDeerImg(rain_deer);
+    // }
+    // else{
+    //   if (parseInt(TEMP)>20){
+    //     setDeerImg(hot_deer);
+    //   }
+    //   else{
+    //     setDeerImg(normal_deer);
+    //   }
+    // }
+  
+    
+    
     
     
 
@@ -685,34 +1106,15 @@ export default function Main() {
     vilageWeatherInfo=extractVilageWeather(vilageJson)[0];
     
 
-    console.log("단기 예보 check : ",(vilageWeatherInfo));
+    // console.log("단기 예보 check : ",(vilageWeatherInfo));
 
     setLowerTemp(JSON.stringify(vilageWeatherInfo.lowerTmp).replace(/\"/gi, ""));
     setUpperTemp(JSON.stringify(vilageWeatherInfo.upperTmp).replace(/\"/gi, ""));
-    
-    
-    // const pmJson = await pmResponse.json(); // 응답을 JSON 형태로 파싱
-    // pmInfo=extractPm(pmJson);
-    // console.log("미세먼지 : ",(pmInfo));
-    // url = 'http://apis.data.go.kr/B552584/ArpltnInforInqireSvc/getCtprvnRltmMesureDnsty';
-    // const pmResponse = await fetch(url, {
-    //   method : "GET",
-    //   headers: {
-    //     'Content-Type': 'application/json',
-    //   },
-    //   body: JSON.stringify({
-    //     serviceKey : serviceKey,
-    //     returnType : 'json',
-    //     numOfRows : 125,
-    //     pageNo: 1,
-    //     sidoName : modifyRegion(region),
-    //     ver: 1.0
-    //   }),
-    // })
+
     
     // 미세먼지 api url
     const pmUrl = getCurrnetPmUrl(region);
-    console.log("pmurl",pmUrl);
+    console.log("###############",pmUrl);
     var pmResponse = await fetch(pmUrl);
     pmResponse=await pmResponse.text();
     pmlist=await setPm(pmResponse);
@@ -721,193 +1123,139 @@ export default function Main() {
     setPmValue10(pmlist[2]);
     setPmValue25(pmlist[3]);
 
+    setIsWeatherLoaded(true);
+
+
+    // 오늘, 내일, 모레 최저/최고 기온
+    const vilageWeekUrl = getCurrnetWeatherUrl(latitude, longitude,"vilage")[2];
+    // console.log("주간 예보 url",vilageWeekUrl);
+    const vilageWeekResponse = await fetch(vilageWeekUrl);
+    const vilageWeekJson = await vilageWeekResponse.json(); // 응답을 JSON 형태로 파싱
+    weekMinTempList=extractVilageWeekWeather(vilageWeekJson)[0] // 최저기온 리스트
+    weekMaxTempList=extractVilageWeekWeather(vilageWeekJson)[1] // 최고기온 리스트
+
+    setTomorrowMin(weekMinTempList[0].replace(/\"/gi, "")); // 내일
+    setAfterTomorrowMin(weekMinTempList[1].replace(/\"/gi, "")); // 모레
+    setTomorrowMax(weekMaxTempList[0].replace(/\"/gi, ""));
+    setAfterTomorrowMax(weekMaxTempList[1].replace(/\"/gi, ""));
+
+    // 3일 후~ 9일 후 최저/최고 기온
+    const vilageWeekUrl3 = getCurrnetWeatherUrl(latitude, longitude,"vilage")[3];
+    console.log("이거",vilageWeekUrl3);
+    const vilageWeekResponse3 = await fetch(vilageWeekUrl3);
+    const vilageWeekJson3 = await vilageWeekResponse3.json(); // 응답을 JSON 형태로 파싱
+    weekMinTempList3=extractVilageWeekWeather3(vilageWeekJson3)[0] // 최저기온 리스트
+    weekMaxTempList3=extractVilageWeekWeather3(vilageWeekJson3)[1] // 최고기온 리스트
     
 
-    // try {
-    //   var parseResult = await parseXml(pmResponse);
-    //   var pmGradeSum10=0; // 미세먼지 등급
-    //   var pmGradeSum25 = 0; // 초미세먼지 등급
-    //   var pmValueSum10=0; // 미세먼지 농도
-    //   var pmValueSum25=0; // 초미세먼지 농도
-    //   var countGrade10=0;
-    //   var countGrade25 = 0;
-    //   var countValue10=0;
-    //   var countValue25=0;
-    //   const items = parseResult.response.body[0].items[0].item;
-    //   for (const item of items) {
-    //     const pm10Grade = parseInt(item.pm10Grade[0]);
-    //     const pm25Grade = parseInt(item.pm25Grade[0]);
-    //     const pm10Value = parseInt(item.pm10Value[0]);
-    //     const pm25Value = parseInt(item.pm25Value[0]);
-    //     if (!isNaN(pm10Grade)) {
-    //       pmGradeSum10 += pm10Grade;
-    //       countGrade10 += 1;
-    //     }
-    //     if (!isNaN(pm25Grade)) {
-    //       pmGradeSum25 += pm25Grade;
-    //       countGrade25 += 1;
-    //     }
-    //     if (!isNaN(pm10Value)) {
-    //       pmValueSum10 += pm10Value;
-    //       countValue10 += 1;
-    //     }
-    //     if (!isNaN(pm25Value)) {
-    //       pmValueSum25 += pm25Value;
-    //       countValue25 += 1;
-    //     }
-    //     // console.log("pm10Grade:", pm10Grade);
-    //   }
-    //   setPmGrade10(extractPm(Math.round(pmGradeSum10 / countGrade10)));
-    //   setPmGrade25(extractPm(Math.round(pmGradeSum25 / countGrade25)));
-    //   setPmValue10(Math.round(pmValueSum10 / countValue10));
-    //   setPmValue25(Math.round(pmValueSum25 / countValue25));
-    //   console.log("미세먼지 농도: ",pmValue10);
-    // } catch (err) {
-    //   console.log("Error:", err); // console에 'Error: [TypeError: Cannot read property 'body' of undefined]' 이렇게 떠도 앱에는 잘 출력됨(왜..?)
-    // }
-    
-    
+    setMin3(weekMinTempList3[0]); // 3일 뒤
+    setMax3(weekMaxTempList3[0]);
+    setMin4(weekMinTempList3[1]); // 4일 뒤
+    setMax4(weekMaxTempList3[1]);
+    setMin5(weekMinTempList3[2]); // 5일 뒤
+    setMax5(weekMaxTempList3[2]);
+    setMin6(weekMinTempList3[3]); // 6일 뒤
+    setMax6(weekMaxTempList3[3]);
 
-//     const pmUrl = getCurrnetPmUrl(region);
-//     fetch(pmUrl)
-//     .then(function(response) {
-//         return response.json();
-//     })
-//     .then(function(json) {
-//         console.log(json);
-//         return json
-//     })
-// console.log(1);
-// console.log(2);
+    const weekly=getDayofweek()
+    console.log("!!!!!!!!!!!!!!!!!",weekly);
+    setDayofweek3(weekly[3]);
+    setDayofweek4(weekly[4]);
+    setDayofweek5(weekly[5]);
+    setDayofweek6(weekly[6]);
+    console.log(dayofweek3);
 
   };
 
-  // 날씨 비교 분석
-  // const compareWeather = async () => {
-  //   if (!vilageJson) {
-  //     // vilageJson이 업데이트되지 않은 경우, 잠시 후에 다시 호출
-  //     setTimeout(compareWeather, 1000); // 1초 후에 compareWeather 함수 호출
-  //     return;
-  //   }
-  //   const testUrl = `https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getUltraSrtFcst?serviceKey=DHAcdCIG92vecEcQDukq%2B%2Fn8eWJtPZ9jKZ3isc%2FWrsnaFK1ZMGLQraTGzmMhDIQLj%2FZCUSkvmj1BgKChWFkbjw%3D%3D&numOfRows=60&pageNo=1&base_date=20230603&base_time=1400&nx=60&ny=127&dataType=json`;
-  //   const testUrl2 = `https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getVilageFcst?serviceKey=DHAcdCIG92vecEcQDukq%2B%2Fn8eWJtPZ9jKZ3isc%2FWrsnaFK1ZMGLQraTGzmMhDIQLj%2FZCUSkvmj1BgKChWFkbjw%3D%3D&numOfRows=290&pageNo=1&base_date=20230603&base_time=2300&nx=60&ny=127&dataType=json`;
-  //   const compareResponse = await fetch(testUrl);
-  //   const compareJson = await compareResponse.json();
-  //   const searchResponse = await fetch(testUrl2);
-  //   const searchJson = await searchResponse.json();
+  const compareWeather = async () => {
 
-  //   // 검색 지역 초단기예보
-  //   compareInfo=extractUltraSrtWeather(compareJson); 
-  //   console.log("검색 지역 : ", commentWeather(compareInfo,"ultraSrt"));
+    // getWeather에서 생성한 vilageJson 사용
+    // 6,9,12,15,18,21시 기온
+    currentTmpForTime=extractVilageWeather(vilageJson)[1]; 
+    const currentTmpList=makeData(currentTmpForTime);
+    //console.log("검색 지역 기온 : ", searchTmpForTime);
 
-  //   // getWeather에서 생성한 vilageJson 사용
-  //   // 6,9,12,15,18,21시 기온
-  //   currentTmpForTime=extractVilageWeather(vilageJson)[1]; 
-  //   searchTmpForTime=extractVilageWeather(searchJson)[1];
-  //   const currentTmpList=makeData(currentTmpForTime);
-  //   const searchTmpList=makeData(searchTmpForTime);
-  //   //console.log("검색 지역 기온 : ", searchTmpForTime);
+    // 6,9,12,15,18,21시 풍속
+    currentWindForTime=extractVilageWeather(vilageJson)[2]; 
 
-  //   // 6,9,12,15,18,21시 풍속
-  //   currentWindForTime=extractVilageWeather(vilageJson)[2]; 
-  //   searchWindForTime=extractVilageWeather(searchJson)[2];
+    // 6,9,12,15,18,21시 강수량
+    currentRainForTime=extractVilageWeather(vilageJson)[3];
+    
 
-  //   // 6,9,12,15,18,21시 강수량
-  //   currentRainForTime=extractVilageWeather(vilageJson)[3];
-  //   searchRainForTime=extractVilageWeather(searchJson)[3];
+    // 6,9,12,15,18,21시 습도
+    currentHumidityForTime=extractVilageWeather(vilageJson)[4];
 
-  //   // 6,9,12,15,18,21시 습도
-  //   currentHumidityForTime=extractVilageWeather(vilageJson)[4];
-  //   searchHumidityForTime=extractVilageWeather(searchJson)[4];
-  //   const currentHumidityList=makeData(currentHumidityForTime);
-  //   const searchHumidityList=makeData(searchHumidityForTime);
+    const currentHumidityList=makeData(currentHumidityForTime);
 
-  //   const currentSensoryData = makeSensoryData(currentTmpList,currentHumidityList);
-  //   const searchSensoryData = makeSensoryData(searchTmpList,searchHumidityList);
+    // 6,9,12,15,18,21시 체감온도
+    const currentSensoryData = makeSensoryData(currentTmpList,currentHumidityList);
+    
+  
+    
 
-  //   const dataForTmp = {
-  //     labels: ["6시", "9시", "12시", "15시", "18시", "21시"],
-  //     datasets : [
-  //       {
-  //         data: makeData(currentTmpForTime),
-  //         color: (opacity = 1) => `rgba(255, 0, 0, ${opacity})`, // 첫 번째 데이터 세트의 색상
-  //         strokeWidth: 2 // 첫 번째 데이터 세트의 선 두께
-  //       },
-  //       {
-  //         data: makeData(searchTmpForTime),
-  //         color: (opacity = 1) => `rgba(0, 0, 255, ${opacity})`, // 두 번째 데이터 세트의 색상
-  //         strokeWidth: 2 // 두 번째 데이터 세트의 선 두께
-  //       }
-  //     ],
-  //     legend: ["시간대별 기온 비교"] // optional
-  //   };
+    const dataForTmp = {
+      labels: ["6시", "9시", "12시", "15시", "18시", "21시"],
+      datasets : [
+        {
+          data: makeData(currentTmpForTime),
+          color: (opacity = 1) => `rgba(255, 0, 0, ${opacity})`, // 첫 번째 데이터 세트의 색상
+          strokeWidth: 2 // 첫 번째 데이터 세트의 선 두께
+        }
+      ],
+      legend: ["시간대별 기온"] // optional
+    };
 
-  //   const dataForWind = {
-  //     labels: ["6시", "9시", "12시", "15시", "18시", "21시"],
-  //     datasets : [
-  //       {
-  //         data: makeData(currentWindForTime),
-  //         color: (opacity = 1) => `rgba(255, 0, 0, ${opacity})`, // 첫 번째 데이터 세트의 색상
-  //         strokeWidth: 2 // 첫 번째 데이터 세트의 선 두께
-  //       },
-  //       {
-  //         data: makeData(searchWindForTime),
-  //         color: (opacity = 1) => `rgba(0, 0, 255, ${opacity})`, // 두 번째 데이터 세트의 색상
-  //         strokeWidth: 2 // 두 번째 데이터 세트의 선 두께
-  //       }
-  //     ],
-  //     legend: ["시간대별 풍속 비교"] // optional
-  //   };
+    const dataForWind = {
+      labels: ["6시", "9시", "12시", "15시", "18시", "21시"],
+      datasets : [
+        {
+          data: makeData(currentWindForTime),
+          color: (opacity = 1) => `rgba(255, 0, 0, ${opacity})`, // 첫 번째 데이터 세트의 색상
+          strokeWidth: 2 // 첫 번째 데이터 세트의 선 두께
+        }
+      ],
+      legend: ["시간대별 풍속"] // optional
+    };
 
-  //   const dataForRain = {
-  //     labels: ["6시", "9시", "12시", "15시", "18시", "21시"],
-  //     datasets : [
-  //       {
-  //         data: makeData(currentRainForTime),
-  //         color: (opacity = 1) => `rgba(255, 0, 0, ${opacity})`, // 첫 번째 데이터 세트의 색상
-  //         strokeWidth: 2 // 첫 번째 데이터 세트의 선 두께
-  //       },
-  //       {
-  //         data: makeData(searchRainForTime),
-  //         color: (opacity = 1) => `rgba(0, 0, 255, ${opacity})`, // 두 번째 데이터 세트의 색상
-  //         strokeWidth: 2 // 두 번째 데이터 세트의 선 두께
-  //       }
-  //     ],
-  //     legend: ["시간대별 강수량 비교"] // optional
-  //   };
+    const dataForRain = {
+      labels: ["6시", "9시", "12시", "15시", "18시", "21시"],
+      datasets : [
+        {
+          data: makeData(currentRainForTime),
+          color: (opacity = 1) => `rgba(255, 0, 0, ${opacity})`, // 첫 번째 데이터 세트의 색상
+          strokeWidth: 2 // 첫 번째 데이터 세트의 선 두께
+        }
+      ],
+      legend: ["시간대별 강수량"] // optional
+    };
 
-  //   const dataForSensory = {
-  //     labels: ["6시", "9시", "12시", "15시", "18시", "21시"],
-  //     datasets : [
-  //       {
-  //         data: currentSensoryData,
-  //         color: (opacity = 1) => `rgba(255, 0, 0, ${opacity})`, // 첫 번째 데이터 세트의 색상
-  //         strokeWidth: 2 // 첫 번째 데이터 세트의 선 두께
-  //       },
-  //       {
-  //         data: searchSensoryData,
-  //         color: (opacity = 1) => `rgba(0, 0, 255, ${opacity})`, // 두 번째 데이터 세트의 색상
-  //         strokeWidth: 2 // 두 번째 데이터 세트의 선 두께
-  //       }
-  //     ],
-  //     legend: ["시간대별 체감온도 비교"] // optional
-  //   };
+    const dataForSensory = {
+      labels: ["6시", "9시", "12시", "15시", "18시", "21시"],
+      datasets : [
+        {
+          data: currentSensoryData,
+          color: (opacity = 1) => `rgba(255, 0, 0, ${opacity})`, // 첫 번째 데이터 세트의 색상
+          strokeWidth: 2 // 첫 번째 데이터 세트의 선 두께
+        }
+      ],
+      legend: ["시간대별 체감온도"] // optional
+    };
 
-  //   // console.log("data 확인",data.datasets[0].data);
-  //   setTempData(dataForTmp);
-  //   setWindData(dataForWind);
-  //   setRainData(dataForRain);
-  //   setSensoryData(dataForSensory);
-  //   setIsLoading(false); // 데이터 로딩 완료 상태 설정
-  // };
+    // console.log("data 확인",data.datasets[0].data);
+    setTempData(dataForTmp);
+    setWindData(dataForWind);
+    setRainData(dataForRain);
+    setSensoryData(dataForSensory);
+    setIsLoading(false); // 데이터 로딩 완료 상태 설정
+    console.log("비교 그래프 확인")
 
-
-
+  
+  };
 
    const getAdvice = async (content,type) => {
     //gpt api_key
+    // const api_key = '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';
     const api_key = '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';
-    // const keywords = '커피';
     const messages = [
       { role: 'system', content: 'You are a helpful assistant.' },
       { role: 'user', content: content },
@@ -931,20 +1279,24 @@ export default function Main() {
       const response = await fetch('https://api.openai.com/v1/chat/completions', config);
       const data = await response.json();
       const choices = await data.choices;
-      let resultText = '';
-      choices.forEach((choice, index) => {
+      if(choices){
+        let resultText = '';
+        choices.forEach((choice, index) => {
         resultText += `${choice.message.content}\n`;
-      });
-      console.log(resultText);
-      switch (type){
-        case "current":
-          setAdvice(resultText);
-          break;
-        case "shareTwo":
-          setShareTwo(resultText);
-          break;
+        });
+        console.log(resultText);
+        switch (type){
+          case "current":
+            setAdvice(resultText);
+            break;
+          case "shareTwo":
+            setShareTwo(resultText);
+            break;
+        }
       }
-      
+      else{
+        console.log('선택사항이 없습니다.');
+      }
     } catch (error) {
       console.error(error);
     }
@@ -952,40 +1304,75 @@ export default function Main() {
 
   useEffect(() => {
     getWeather();
-    // compareWeather();
-    // 현재 날씨 조언 기능
-    getAdvice('기온'+ TEMP +'도, 미세먼지 '+pmGrade10+'인 날씨에 대한 재밌는 한마디 부탁해',"current");
-    // 공유 메시지 질문을 gpt에게 넘기기
-    getAdvice('기온'+ TEMP +'도, 미세먼지 '+pmGrade10+'인 날씨에 대한 메시지를 소중한 사람에게 보낼 거야. 메시지는 *을 사용해서 감싸줘.',"shareTwo");
-  }, []);
+    compareWeather();
+    
+    if (TEMP !== undefined && pmGrade10 !== undefined) {
+      // 현재 날씨 조언 기능
+      getAdvice('기온' + TEMP + '도, 미세먼지 ' + pmGrade10 + '인 날씨에 대한 재밌는 한마디 부탁해', "current");
+      // 공유 메시지 질문을 gpt에게 넘기기
+      getAdvice('기온' + TEMP + '도, 미세먼지 ' + pmGrade10 + '인 날씨에 대한 메시지를 재치있게 만들어 줘. 마지막에는 두 줄 띄고 "날씨 비교는 CupidWeather!" 문장을 넣어줘', "shareTwo");
+    }
 
-  return (
+  }, [TEMP, pmGrade10]);
+
+  // rainfall과 TEMP의 값이 변경되었을 때에만 setDeerImg() 함수 호출되도록 함
+  // 기후별 배경색 변경
+  useEffect(() => {
+    if (rainfall !== "강수없음") {
+      setDeerImg(rain_deer);
+      setBackLiner('#4c5c7c');
+    } else if (parseInt(wind) > 7) {
+      setDeerImg(wind_deer);
+      setBackLiner('#26a69a');
+    } else {
+      if (parseInt(TEMP) > 19) {
+        setDeerImg(hot_deer);
+        setBackLiner('#2980B9'); // #2980B9
+      } else if (parseInt(TEMP) > 9){
+        setDeerImg(normal_deer);
+        setBackLiner('#f97a92');
+      } else {
+        setDeerImg(cold_deer);
+        setBackLiner('#ffcdd2');
+      }
+    }
+  }, [rainfall, TEMP, wind]);
+
+  useEffect(() => {
+    if (pmGrade10 == "좋음" || pmGrade10 == "보통"){
+      setCloudImg(dustcloud);
+      setDustbackLiner('#82b1ff');
+    }
+    else{
+      setCloudImg(dustcloud);
+      setDustbackLiner('#ffd180');
+    }
+    
+  }, [pmGrade10]);
+
+
+
+
+return (
    
-      <LinearGradient colors={['#2980B9', '#6DD5FA',]} start={[0.1, 0.2]} style={styles.container}>
-      <StatusBar style="light"></StatusBar>
-
-
-
-
-{/* 현재날짜요일시간 */}
-<Text style={styles.date}>5월 31일 수요일</Text>
-<View style={styles.search}>
-<View style={styles.row}>
-
-  {/* 검색창 */}
-<TextInput
+  <LinearGradient colors={[backLiner, '#6DD5FA',]} start={[0.1, 0.2]} style={styles.container}>
+  <StatusBar style="light"></StatusBar>
+      
+  {/* 현재날짜요일시간 */}
+  <Text style={styles.date}>5월 31일 수요일</Text>
+  <View style={styles.search}>
+    <View style={styles.row}>
+      {/* 검색창 */}
+      <TextInput
         style={{ height: 25, width: 250, borderColor: '#455A64',borderRadius: 10, borderWidth: 1, paddingLeft: 5, marginBottom: 20, backgroundColor:'rgba(30, 100, 200, 0.1)', fontSize: 14,}}
         placeholder="지역명을 입력하세요"
-
         value={locationName}
         onChangeText={text => setLocationName(text)}
       />
-      
       <Button title="검색" onPress={searchLocation} />
       </View>
-     
-{/* <FilterProd ucts /> */}
-</View>  
+      {/* <FilterProd ucts /> */}
+    </View>  
 
 
 {/* 스크롤 적용구간 */}
@@ -998,80 +1385,89 @@ export default function Main() {
       >
         {/* 현재위치 기온 & 코멘트 */}
 
-          <View style={styles.row}>
+        <View style={styles.row}>
           <View style={styles.Myloca}>
-        <Text style={styles.cityName}>{city} {subregion} {district}</Text>
-        <Text style={styles.temp}>{TEMP}</Text>
-          <Text style={styles.description}>{SKY}</Text>
-          <Text style={styles.message}>{advice}</Text>
+            <Text style={styles.cityName}>{city} {subregion} {district}</Text>
+            <Text style={styles.temp}>{TEMP}</Text>
+            <Text style={styles.description}>{SKY}</Text>
+            <Text style={styles.message}>{advice}</Text>
           </View>
  
           
      {/* 캐릭터 이미지 */}
 
           <View style={styles.image}>
-          <Image
-      style={styles.image}
-      source={require('./src/assets/image/Deer.png')}
-      resizeMode={"contain"}
-        />
+            {isWeatherLoaded && ( // 기온과 강수량이 로딩된 후에 이미지가 렌더링 되도록 변경
+            <Image
+              style={styles.image}
+              source={deerImg}
+              resizeMode={"contain"}
+            />
+            )}
           </View>
-          </View>
+          
+              {/* <View style={styles.image}>
+              <Image
+              style={styles.image}
+              source={cold_deer}
+              // source={require('./src/assets/image/Deer.png')}
+              // source={require('./src/assets/image/cold_deer.PNG')}
+              resizeMode={"contain"}
+              />
+              </View> */}
+        </View>
           
           
 
-         {/* 4개 아이콘 데이터 */}
-        
+        {/* 4개 아이콘 데이터 */}
         <View style={styles.degree}>
-        
-      <View style={styles.column}>
-      <Text  style={styles.dataname}>풍속</Text>
-        <View style={styles.circle}>
-        <Image
-      style={styles.circlePad}
-      source={require('./src/assets/image/wether-icon/wind.png')}
-      resizeMode={"contain"}
-        />
-        </View>
-        <Text style={styles.datavalue}>{wind}</Text >
-        </View>
+          <View style={styles.column}>
+            <Text  style={styles.dataname}>풍속</Text>
+            <View style={styles.circle}>
+              <Image
+                style={styles.circlePad}
+                source={require('./src/assets/image/weather-icon/wind.png')}
+                resizeMode={"contain"}
+              />
+            </View>
+            <Text style={styles.datavalue}>{wind}</Text >
+          </View>
 
-        <View style={styles.column}>
-      <Text style={styles.dataname}>강수량</Text>
-        <View style={styles.circle}>
-        <Image
-      style={styles.circlePad}
-      source={require('./src/assets/image/wether-icon/rain-umbrella.png')}
-      resizeMode={"contain"}
-        />
-        </View>
-        <Text style={styles.datavalue}>{rainfall}</Text>
-        </View>
+          <View style={styles.column}>
+            <Text style={styles.dataname}>강수량</Text>
+            <View style={styles.circle}>
+              <Image
+                style={styles.circlePad}
+                source={require('./src/assets/image/weather-icon/rain-umbrella.png')}
+                resizeMode={"contain"}
+              />
+            </View>
+            <Text style={styles.datavalue}>{rainfall}</Text>
+          </View>
 
-        <View style={styles.column}>
-      <Text style={styles.dataname}>체감온도</Text>
-        <View style={styles.circle}>
-        <Image
-      style={styles.circlePad}
-      source={require('./src/assets/image/wether-icon/humidity.png')}
-      resizeMode={"contain"}
-        />
-        </View>
-        <Text style={styles.datavalue}>{sensoryTEMP}</Text>
-        </View>
+          <View style={styles.column}>
+            <Text style={styles.dataname}>체감온도</Text>
+            <View style={styles.circle}>
+              <Image
+                style={styles.circlePad}
+                source={require('./src/assets/image/weather-icon/humidity.png')}
+                resizeMode={"contain"}
+              />
+            </View>
+            <Text style={styles.datavalue}>{sensoryTEMP}</Text>
+          </View>
 
-        <View style={styles.column}>
-      <Text style={styles.dataname}>최고/최저</Text>
-        <View style={styles.circle}>
-        <Image
-      style={styles.circlePad}
-      source={require('./src/assets/image/wether-icon/sun.png')}
-      resizeMode={"contain"}
-        />
-        </View>
-        <Text style={styles.datavalue}>{upperTEMP}/{lowerTEMP}</Text>
-        </View>
-
+          <View style={styles.column}>
+            <Text style={styles.dataname}>최고/최저</Text>
+            <View style={styles.circle}>
+              <Image
+                style={styles.circlePad}
+                source={require('./src/assets/image/weather-icon/sun.png')}
+                resizeMode={"contain"}
+              />
+            </View>
+            <Text style={styles.datavalue}>{upperTEMP}/{lowerTEMP}</Text>
+          </View>
         </View>
         
         
@@ -1081,38 +1477,41 @@ export default function Main() {
       
         <>
         <View style={styles.card}>
-        <View style={styles.column}>
-        <Text style={styles.ment}> 좋아하는 사람에게 날씨를 공유해 보는 건 어떨까요?</Text> 
-        <View style={styles.rowlable}>
-        <Text style={styles.ment}> 당신의 마음이 전해질 지도 몰라요~</Text> 
+          <View style={styles.column}>
+            <Text style={styles.ment}> 좋아하는 사람에게 날씨를 공유해 보는 건 어떨까요?</Text> 
+            <View style={styles.rowlable}>
+              <Text style={styles.ment}> 당신의 마음이 전해질 지도 몰라요~</Text> 
        
-       {/* 일단 공유 이미지 말고 버튼으로 공유 기능 생성 */}
-        {/* <Image
-      style={styles.miniIcon}
-      source={require('./src/assets/image/share.png')}
-      resizeMode={"contain"}
-        /> */}
-        {/* 공유 버튼 누르면 gpt 멘트 공유 가능 */}
-        <Button 
-          title="공유"
-          onPress={async () => await Share.share({ message: shareTwo,})}>
-        </Button>
-          
-        </View>
-        </View>
+              {/* 일단 공유 이미지 말고 버튼으로 공유 기능 생성 */}
+              {/* <Image
+                  style={styles.miniIcon}
+                  source={require('./src/assets/image/share.png')}
+                  resizeMode={"contain"}
+                  /> */}
+              {/* 공유 버튼 누르면 gpt 멘트 공유 가능 */}
+              <Button 
+                title="공유"
+                onPress={async () => await Share.share({ message: shareTwo,})}>
+              </Button>
+            </View>
+          </View>
         </View>
         </>
       
 
-
+        
       
       {/*  미세 먼지  */}
+      <LinearGradient colors={[dustbackLiner, '#6DD5FA',]} start={[0.1, 0.2]} style={styles.container}>
       <View style={styles.dustPad}>
-      <Image
-      style={styles.dustIcon}
-      source={require('./src/assets/image/wether-icon/dust.png')}
-      resizeMode={"contain"}
-        />
+        {isWeatherLoaded && (
+          <Image
+          style={styles.dustIcon}
+          source={cloudImg}
+          resizeMode={"contain"}
+          />
+        )}
+      
         <View style={styles.dustData}>
         <View styel={styles.column}>
         <Text style={styles.pmGrade}> 미세먼지 </Text> 
@@ -1124,33 +1523,61 @@ export default function Main() {
           </View>
         </View>
       </View>
+</LinearGradient>
 
 
       {/* 즐겨찾기 */}
-         <View style={styles.bookmarkPad}>
-         <View style={styles.myplace}>
-         <View style={styles.rowlable}>
-         <Image
-      style={styles.miniIcon}
-      source={require('./src/assets/image/wether-icon/bookmark.png')}
-      resizeMode={"contain"}
-        />
-         <Text style={styles.ment}> MyPlace                                                        </Text>  
-         {/* 플러스 버튼과 간격두기 위한 죽음의 띄어쓰기.. */}
-         <Image
-      style={styles.miniIcon}
-      source={require('./src/assets/image/plus.png')}
-      resizeMode={"contain"}
-        />
-         </View>
+      
+        <View style={styles.bookmarkPad}>
+          <View style={styles.myplace}>
+            <View style={styles.rowlable}>
+              <Image
+                style={styles.miniIcon}
+                source={require('./src/assets/image/weather-icon/bookmark.png')}
+                resizeMode={"contain"}
+              />
+              <Text style={styles.ment}> MyPlace                                                        </Text>  
+              {/* 플러스 버튼과 간격두기 위한 죽음의 띄어쓰기.. */}
+              <Image
+                style={styles.miniIcon}
+                source={require('./src/assets/image/plus.png')}
+                resizeMode={"contain"}
+              />
+            </View>
+          </View>
 
-         </View>
-         <View style={styles.location}>
-         
-         <Text style={styles.ment}> 아라동 </Text> 
-         <Text style={styles.ment}> 일도이동 </Text> 
-         </View>
-         </View>
+          <View style={styles.location}>
+            <Button
+              title='즐겨찾기'
+              onPress={() => {
+              setLocationName(favorite1)
+              searchLocationbk(favorite1);
+            }} />
+            <Text style={styles.ment}> {favorite1} </Text> 
+          </View>
+
+          <View style={styles.location}>
+            <Button
+              title='즐겨찾기'
+              onPress={() => {
+              setLocationName(favorite2)
+              searchLocationbk(favorite2);
+              }}
+            ></Button>
+            <Text style={styles.ment}> {favorite2} </Text>
+          </View>
+
+          <View style={styles.location}>
+            <Button
+              title='즐겨찾기'
+              onPress={() => {
+              setLocationName(favorite3)
+              searchLocationbk(favorite3);
+              }}
+            ></Button>
+            <Text style={styles.ment}> {favorite3} </Text>
+          </View>
+        </View>
          
 
 
@@ -1169,71 +1596,137 @@ export default function Main() {
    
        <View style={styles.weekly}>
         <Text style={styles.dayOfweek}>
-            오늘
+            내일
           </Text>
         <View style={styles.hum}></View>
         <View style={styles.icon}></View>
         <View style={styles.icon}></View>
-        <View style={styles.high}></View>
-        <View style={styles.low}></View>
+        <Text style={styles.high}>{tomorrowMax}</Text>
+        <Text style={styles.low}>{tomorrowMin}</Text>
        </View>
   
        <View style={styles.weekly}>
         <Text style={styles.dayOfweek}>
-            오늘
+            모레
           </Text>
         <View style={styles.hum}></View>
         <View style={styles.icon}></View>
         <View style={styles.icon}></View>
-        <View style={styles.high}></View>
-        <View style={styles.low}></View>
+        <Text style={styles.high}>{afterTomorrowMax}</Text>
+        <Text style={styles.low}>{afterTomorrowMin}</Text>
        </View>
   
        <View style={styles.weekly}>
         <Text style={styles.dayOfweek}>
-            오늘
+          {dayofweek3}
           </Text>
         <View style={styles.hum}></View>
         <View style={styles.icon}></View>
         <View style={styles.icon}></View>
-        <View style={styles.high}></View>
-        <View style={styles.low}></View>
+        <Text style={styles.high}>{min3}.0</Text>
+        <Text style={styles.low}>{max3}.0</Text>
        </View>
   
        <View style={styles.weekly}>
         <Text style={styles.dayOfweek}>
-            오늘
+          {dayofweek4}
           </Text>
         <View style={styles.hum}></View>
         <View style={styles.icon}></View>
         <View style={styles.icon}></View>
-        <View style={styles.high}></View>
-        <View style={styles.low}></View>
+        <Text style={styles.high}>{min4}.0</Text>
+        <Text style={styles.low}>{max4}.0</Text>
        </View>
   
        <View style={styles.weekly}>
         <Text style={styles.dayOfweek}>
-            오늘
+          {dayofweek5}
           </Text>
         <View style={styles.hum}></View>
         <View style={styles.icon}></View>
         <View style={styles.icon}></View>
-        <View style={styles.high}></View>
-        <View style={styles.low}></View>
+        <Text style={styles.high}>{min5}.0</Text>
+        <Text style={styles.low}>{max5}.0</Text>
        </View>
   
        <View style={styles.weekly}>
         <Text style={styles.dayOfweek}>
-            오늘
+          {dayofweek6}  
           </Text>
         <View style={styles.hum}></View>
         <View style={styles.icon}></View>
         <View style={styles.icon}></View>
-        <View style={styles.high}></View>
-        <View style={styles.low}></View>
+        <Text style={styles.high}>{min6}.0</Text>
+        <Text style={styles.low}>{max6}.0</Text>
        </View>
         
         </View>
+
+        <View style={styles.day}>
+        {isLoading ? (
+        <Text>Loading...</Text> // 로딩 상태 표시
+        ) : (
+            <>{tempData && (
+            <LineChart
+                data={tempData}
+                width={screenWidth}
+                height={220}
+                chartConfig={chartConfig}
+            />)} 
+            </>
+        )}
+            
+        </View>
+        <View style={styles.day}>
+        {isLoading ? (
+        <Text>Loading...</Text> // 로딩 상태 표시
+        ) : (
+        <>
+            {windData && (
+            <LineChart
+            data={windData}
+            width={screenWidth}
+            height={220}
+            chartConfig={chartConfig}
+            />
+            )}  
+        </>
+        )}
+            
+        </View>
+        <View style={styles.day}>
+          {isLoading ? (
+          <Text>Loading...</Text> // 로딩 상태 표시
+          ) : (
+          <>
+              {rainData && (
+              <LineChart
+              data={rainData}
+              width={screenWidth}
+              height={220}
+              chartConfig={chartConfig}
+              />
+              )}  
+          </>
+          )}
+          
+        </View>
+        <View style={styles.day}>
+        {isLoading ? (
+          <Text>Loading...</Text> // 로딩 상태 표시
+          ) : (
+              <>{sensoryData && (
+              <LineChart
+                  data={sensoryData}
+                  width={screenWidth}
+                  height={220}
+                  chartConfig={chartConfig}
+              />)} 
+              </>
+          )}
+          
+        </View>
+
         </ScrollView>
         </View>
         </LinearGradient>
@@ -1478,7 +1971,7 @@ export default function Main() {
 
   dustPad:{
     marginTop: 10,
-    backgroundColor:'rgba(0, 50, 0, 0.2)',
+    // backgroundColor:'rgba(0, 50, 0, 0.2)',
     justifyContent:"center",
     flexDirection:"row",
     height: 110,
