@@ -442,13 +442,13 @@ export function commentWeather(weatherDict,apiType){
 function getDayofweek(){
   var d = new Date();
   var weekday = new Array(7);
-  weekday[0] = "Sun";
-  weekday[1] = "Mon";
-  weekday[2] = "Tue";
-  weekday[3] = "Wed";
-  weekday[4] = "Thu";
-  weekday[5] = "Fri";
-  weekday[6] = "Sat";
+  weekday[0] = "일요일";
+  weekday[1] = "월요일";
+  weekday[2] = "화요일";
+  weekday[3] = "수요일";
+  weekday[4] = "목요일";
+  weekday[5] = "금요일";
+  weekday[6] = "토요일";
 
   today=d.getDay() // 1
   var weekly=[];
@@ -644,6 +644,9 @@ export default function Main() {
 
   // 배경색
   const [backLiner, setBackLiner] = useState();
+
+  //미세먼지 배경색
+  const [dustbackLiner, setDustbackLiner] = useState();
 
   // 미세먼지 이미지
   const dustcloud = require('./src/assets/image/wether-icon/dust.png');
@@ -1277,31 +1280,36 @@ export default function Main() {
   }, [TEMP, pmGrade10]);
 
   // rainfall과 TEMP의 값이 변경되었을 때에만 setDeerImg() 함수 호출되도록 함
+  // 기후별 배경색 변경
   useEffect(() => {
     if (rainfall !== "강수없음") {
       setDeerImg(rain_deer);
+      setBackLiner('#4c5c7c');
     } else if (parseInt(wind) > 7) {
       setDeerImg(wind_deer);
+      setBackLiner('#26a69a');
     } else {
       if (parseInt(TEMP) > 19) {
         setDeerImg(hot_deer);
-        setBackLiner('#ffcc80');
-        console.log("--------------------",backLiner);
+        setBackLiner('#2980B9'); // #2980B9
       } else if (parseInt(TEMP) > 9){
         setDeerImg(normal_deer);
+        setBackLiner('#f97a92');
       } else {
         setDeerImg(cold_deer);
+        setBackLiner('#ffcdd2');
       }
     }
-    
   }, [rainfall, TEMP, wind]);
 
   useEffect(() => {
     if (pmGrade10 == "좋음" || pmGrade10 == "보통"){
       setCloudImg(cleancloud);
+      setDustbackLiner('#82b1ff');
     }
     else{
       setCloudImg(dustcloud);
+      setDustbackLiner('#ffd180');
     }
     
   }, [pmGrade10]);
@@ -1490,6 +1498,7 @@ export default function Main() {
         
       
       {/*  미세 먼지  */}
+      <LinearGradient colors={[dustbackLiner, '#6DD5FA',]} start={[0.1, 0.2]} style={styles.container}>
       <View style={styles.dustPad}>
         {isWeatherLoaded && (
           <Image
@@ -1510,6 +1519,7 @@ export default function Main() {
           </View>
         </View>
       </View>
+      </LinearGradient>
 
 
       {/* 즐겨찾기 */}
@@ -1533,37 +1543,36 @@ export default function Main() {
 
          <View style={styles.location}>
          <Button
-            title={favorite1}
+            title="즐겨찾기"
             onPress={() => {
               setLocationName(favorite1)
               searchLocationbk(favorite1);
             }}
           ></Button>
-         {/* <Text style={styles.ment}> {favorite1} </Text>  */}
+         <Text style={styles.ment}> {favorite1} </Text> 
          </View>
 
          <View style={styles.location}>
          <Button
-            title={favorite2}
+            title="즐겨찾기"
             onPress={() => {
               setLocationName(favorite2)
               searchLocationbk(favorite2);
             }}
           ></Button>
-         {/* <Text style={styles.ment}> {favorite2} </Text> */}
+         <Text style={styles.ment}> {favorite2} </Text>
          </View>
 
          <View style={styles.location}>
          <Button
-            title={favorite3}
+            title="즐겨찾기"
             onPress={() => {
               setLocationName(favorite3)
               searchLocationbk(favorite3);
             }}
           ></Button>
-         {/* <Text style={styles.ment}> {favorite3} </Text> */}
+         <Text style={styles.ment}> {favorite3} </Text>
          </View>
-
          </View>
          
 
@@ -1725,474 +1734,473 @@ export default function Main() {
   
   
   const styles = StyleSheet.create({
-  container:{
-    paddingTop : 10,
-    justifyContent: "flex-start",
-    backgroundColor: "2980b9"
-    //height:1800
-  },
-  date:{
-    //flexDirection:"row",
-    paddingTop:10,
-    marginTop: 30,
-    marginLeft: 20,
-    marginBottom: 5,
-    width: 350,
-    height:30,
-    textAlign:"center",
-    alignItems: "center",
-    color: "white",
-    // backgroundColor:"#E6E6FA",
-    //justifyContent:"space-evenly",
-    fontSize: 14
-  },
-  search:{
-    //flexDirection:"row",
-    justifyContent: "flex-start",
-    marginTop: 5,
-    width:SCREEN_WIDTH,
-    height:40,
-    textAlign:"center",
-    alignItems: "center",
-    // backgroundColor:"skyblue",
-    //justifyContent:"space-evenly",
-    fontSize:20
-  
-  },
-  city:{
-    width: 180,
-    //height:18,
-    //marginLeft:20,
-    height: 170,
-    // backgroundColor:"skyblue",
-    justifyContent:"flex-start",
-    textAlign: "center",
-    alignItems:"center"
-  },
-  cityName:{
-    width: 180,
-    marginTop: 10,
-    marginLeft: 20,
-    fontSize:26,
-    fontWeight:"500"
-  },
-  weather:{
-    width : SCREEN_WIDTH,
-    //height : 1000,
-    justifyContent:"space-between",
-    // backgroundColor:"blue",
-    alignItems: "flex-start",
-  },
-  day:{
-    width:SCREEN_WIDTH,
-    height: 600,
-    flexDirection:"column",
-    //  backgroundColor:"#AFEEEE",
-    //flex:1,
-    //backgroundColor:"teal",
-    alignItems:"flex-start",
-    marginTop:10
-  },
-  
-  row:{
-    //backgroundColor:"#4169e1",
-    justifyContent:"center",
-    flexDirection:"row",
-    height: 200,
-    width : 390
-  },
-  column:{
-    paddingBottom: 5,
-    justifyContent:"flex-start",
-    flexDirection:"column"
-  },
-  rowlable:{
-    flexDirection:"row"
-  },
-  Myloca:{
-    paddingLeft: 10,
-    width : 180,
-    height : 210,
-    marginTop : 20,
-    marinLeft: 10,
-    marginRight: 5,
-    //justifyContent:"flex-start",
-    alignItems: "center",
-    textAlign: "center",
-    // backgroundColor:"skyblue",
-    flexDirection:"column",
-  },
-  temp:{
-    width : 180,
-    height : 80,
-    justifyContent:"flex-start",
-    alignItems: "center",
-    textAlign: "center",
-    // backgroundColor:"skyblue",
-    flexDirection:"column",
-    marginLeft:20,
-    //marginTop:10,
-    fontSize:70
-  },
-  image:{
-    width: 180,
-    height: 210,
-    justifyContent:"flex-end",
-    // backgroundColor:"#000080",
-    marginLeft:5,
-    marginTop:10
-  },
-  description:{
-    width:170,
-    height:40,
-    marginTop:5,
-    marginLeft:20,
-    textAlign:"center",
-    // backgroundColor:"#00BFFF",
-    //justifyContent:"center",
-    fontSize:40
+    container:{
+      paddingTop : 10,
+      justifyContent: "flex-start",
+      backgroundColor: "2980b9"
+      //height:1800
+    },
+    date:{
+      //flexDirection:"row",
+      paddingTop:10,
+      marginTop: 30,
+      marginLeft: 20,
+      marginBottom: 5,
+      width: 350,
+      height:30,
+      textAlign:"center",
+      alignItems: "center",
+      color: "white",
+      // backgroundColor:"#E6E6FA",
+      //justifyContent:"space-evenly",
+      fontSize: 14
+    },
+    search:{
+      //flexDirection:"row",
+      justifyContent: "flex-start",
+      marginTop: 5,
+      width:SCREEN_WIDTH,
+      height:40,
+      textAlign:"center",
+      alignItems: "center",
+      // backgroundColor:"skyblue",
+      //justifyContent:"space-evenly",
+      fontSize:20
     
-  },
-  
-  circle: {
-    width: 45,
-    height: 45,
-    borderRadius: 100 / 2,
-    backgroundColor: 'rgba(30, 100, 200, 0.1)'
-  },
-  circlePad: {
-    width: 45,
-    height: 45,
-    // backgroundColor: 'rgba(30, 100, 200, 0.1)'
-  },
-  datavalue: {
-    width: 45,
-    height: 12,
-    fontFamily: "SUITE-Medium",
-    fontSize: 10,
-    textAlign:"center",
-    marginTop : 3,
-    //backgroundColor: "blue"
-  },
-  dataname: {
-    width: 45,
-    height: 12,
-    fontFamily: "SUITE-Medium",
-    fontSize : 10,
-    textAlign:"center",
-    marginBottom : 3
-
-    //backgroundColor: "blue"
-  },
- 
-  
-  degree:{
-    flexDirection:"row",
-    width: 370,
-    height: 100,
-    marginTop: 30,
-    marginLeft:10,
-    textAlign:"center",
-    alignItems: "center",
-    // backgroundColor:"#00BFFF",
-    justifyContent:"space-evenly",
-    fontSize:40
+    },
+    city:{
+      width: 180,
+      //height:18,
+      //marginLeft:20,
+      height: 170,
+      // backgroundColor:"skyblue",
+      justifyContent:"flex-start",
+      textAlign: "center",
+      alignItems:"center"
+    },
+    cityName:{
+      width: 180,
+      marginTop: 10,
+      marginLeft: 20,
+      fontSize:26,
+      fontWeight:"500"
+    },
+    weather:{
+      width : SCREEN_WIDTH,
+      //height : 1000,
+      justifyContent:"space-between",
+      // backgroundColor:"blue",
+      alignItems: "flex-start",
+    },
+    day:{
+      width:SCREEN_WIDTH,
+      height: 600,
+      flexDirection:"column",
+      //  backgroundColor:"#AFEEEE",
+      //flex:1,
+      //backgroundColor:"teal",
+      alignItems:"flex-start",
+      marginTop:10
+    },
     
-  },
-
+    row:{
+      //backgroundColor:"#4169e1",
+      justifyContent:"center",
+      flexDirection:"row",
+      height: 200,
+      width : 390
+    },
+    column:{
+      paddingBottom: 5,
+      justifyContent:"flex-start",
+      flexDirection:"column"
+    },
+    rowlable:{
+      flexDirection:"row"
+    },
+    Myloca:{
+      paddingLeft: 10,
+      width : 180,
+      height : 210,
+      marginTop : 20,
+      marinLeft: 10,
+      marginRight: 5,
+      //justifyContent:"flex-start",
+      alignItems: "center",
+      textAlign: "center",
+      // backgroundColor:"skyblue",
+      flexDirection:"column",
+    },
+    temp:{
+      width : 180,
+      height : 80,
+      justifyContent:"flex-start",
+      alignItems: "center",
+      textAlign: "center",
+      // backgroundColor:"skyblue",
+      flexDirection:"column",
+      marginLeft:20,
+      //marginTop:10,
+      fontSize:70
+    },
+    image:{
+      width: 180,
+      height: 210,
+      justifyContent:"flex-end",
+      // backgroundColor:"#000080",
+      marginLeft:5,
+      marginTop:10
+    },
+    description:{
+      width:170,
+      height:40,
+      marginTop:5,
+      marginLeft:20,
+      textAlign:"center",
+      // backgroundColor:"#00BFFF",
+      //justifyContent:"center",
+      fontSize:40
+      
+    },
+    
+    circle: {
+      width: 45,
+      height: 45,
+      borderRadius: 100 / 2,
+      backgroundColor: 'rgba(30, 100, 200, 0.1)'
+    },
+    circlePad: {
+      width: 45,
+      height: 45,
+      // backgroundColor: 'rgba(30, 100, 200, 0.1)'
+    },
+    datavalue: {
+      width: 45,
+      height: 12,
+      fontFamily: "SUITE-Medium",
+      fontSize: 10,
+      textAlign:"center",
+      marginTop : 3,
+      //backgroundColor: "blue"
+    },
+    dataname: {
+      width: 45,
+      height: 12,
+      fontFamily: "SUITE-Medium",
+      fontSize : 10,
+      textAlign:"center",
+      marginBottom : 3
   
-  message:{
-    //flexDirection:"row",
-    marginTop: 10,
-    marginLeft: 20,
-   // width: 350,
-    height:25,
-    textAlign:"center",
-    alignItems: "center",
-    // backgroundColor:"#E6E6FA",
-    //justifyContent:"space-evenly",
-    fontFamily: "SUITE-Medium",
-    fontSize:16
+      //backgroundColor: "blue"
+    },
+   
+    
+    degree:{
+      flexDirection:"row",
+      width: 370,
+      height: 100,
+      marginTop: 30,
+      marginLeft:10,
+      textAlign:"center",
+      alignItems: "center",
+      // backgroundColor:"#00BFFF",
+      justifyContent:"space-evenly",
+      fontSize:40
+      
+    },
   
-  },
-
+    
+    message:{
+      //flexDirection:"row",
+      marginTop: 10,
+      marginLeft: 20,
+     // width: 350,
+      height:25,
+      textAlign:"center",
+      alignItems: "center",
+      // backgroundColor:"#E6E6FA",
+      //justifyContent:"space-evenly",
+      fontFamily: "SUITE-Medium",
+      fontSize:16
+    
+    },
   
-  miniIcon:{
-    // backgroundColor: "white",
-    width: 14,
-    height: 16,
-    marginTop: 4,
-    alignItems: "center",
-  },
-
-  card:{
-    marginTop: 12,
-    marginLeft: 20,
-    marginBottom: 15,
-    paddingLeft: 10,
-    paddingTop: 3,
-    width: 350,
-    height: 70,
-    textAlign:"left",
-    alignItems: "center",
-    flexDirection:"row",
-    //justifyContent:"space-evenly",
-    fontSize:16,
-    backgroundColor: 'rgba(0, 100, 150, 0.1)',
-    borderColor: 'rgba(0, 50, 0, 0.2)',
-    borderWidth: 2,
-    borderRadius: 15,
-  },
-
-  ment:{
-    // backgroundColor: "white",
-    fontFamily: "SUITE-Medium",
-    // width: 350,
-    height: 18,
-    margin: 2,
-    textAlign:"left",
-    //justifyContent:"space-evenly",
-    fontSize:16,
-  },
-
-
-  dustPad:{
-    marginTop: 10,
-    backgroundColor:'rgba(0, 50, 0, 0.2)',
-    justifyContent:"center",
-    flexDirection:"row",
-    height: 110,
-    width : 390
-  },
+    
+    miniIcon:{
+      // backgroundColor: "white",
+      width: 14,
+      height: 16,
+      marginTop: 4,
+      alignItems: "center",
+    },
   
-  dustData:{
-    marginTop: 12,
-    marginLeft: 10,
-    paddingTop: 5,
-    width: 190,
-    height:80,
-    flexDirection:"row",
-    textAlign:"left",
-    alignItems: "center",
-    //backgroundColor:"#E6E6FA",
-    justifyContent:"flex-start",
-    fontSize:16
-  },
+    card:{
+      marginTop: 12,
+      marginLeft: 20,
+      marginBottom: 15,
+      paddingLeft: 10,
+      paddingTop: 3,
+      width: 350,
+      height: 70,
+      textAlign:"left",
+      alignItems: "center",
+      flexDirection:"row",
+      //justifyContent:"space-evenly",
+      fontSize:16,
+      backgroundColor: 'rgba(0, 100, 150, 0.1)',
+      borderColor: 'rgba(0, 50, 0, 0.2)',
+      borderWidth: 2,
+      borderRadius: 15,
+    },
   
-  dustIcon:{
-    marginTop: 15,
-    //marginLeft: 20,
-    width: 110,
-    height:80,
-    alignItems: "center",
-    //backgroundColor:"#E6E6FA",
-    //justifyContent:"space-evenly",
-    fontSize:16
-  },
- 
-  pmGrade:{
-    //flexDirection:"row",
-    marginTop: 5,
-    marginLeft: 5,
-   // width: 350,
-    height:20,
-    textAlign:"center",
-    alignItems: "center",
+    ment:{
+      // backgroundColor: "white",
+      fontFamily: "SUITE-Medium",
+      // width: 350,
+      height: 18,
+      margin: 2,
+      textAlign:"left",
+      //justifyContent:"space-evenly",
+      fontSize:16,
+    },
+  
+  
+    dustPad:{
+      marginTop: 10,
+      // backgroundColor:'rgba(0, 50, 0, 0.2)',
+      justifyContent:"center",
+      flexDirection:"row",
+      height: 110,
+      width : 390
+    },
+    
+    dustData:{
+      marginTop: 12,
+      marginLeft: 10,
+      paddingTop: 5,
+      width: 190,
+      height:80,
+      flexDirection:"row",
+      textAlign:"left",
+      alignItems: "center",
+      //backgroundColor:"#E6E6FA",
+      justifyContent:"flex-start",
+      fontSize:16
+    },
+    
+    dustIcon:{
+      marginTop: 15,
+      //marginLeft: 20,
+      width: 110,
+      height:80,
+      alignItems: "center",
+      //backgroundColor:"#E6E6FA",
+      //justifyContent:"space-evenly",
+      fontSize:16
+    },
+   
+    pmGrade:{
+      //flexDirection:"row",
+      marginTop: 5,
+      marginLeft: 5,
+     // width: 350,
+      height:20,
+      textAlign:"center",
+      alignItems: "center",
+       //backgroundColor:"#E6E6FA",
+      //justifyContent:"space-evenly",
+      fontFamily: "SUITE-Medium",
+      fontSize:16
+    
+    },
+  
+    pm:{
+      //flexDirection:"row",
+      marginTop: 10,
+      marginLeft: 20,
+     // width: 350,
+      height:20,
+      textAlign:"center",
+      alignItems: "center",
      //backgroundColor:"#E6E6FA",
-    //justifyContent:"space-evenly",
-    fontFamily: "SUITE-Medium",
-    fontSize:16
-  
-  },
-
-  pm:{
-    //flexDirection:"row",
-    marginTop: 10,
-    marginLeft: 20,
-   // width: 350,
-    height:20,
-    textAlign:"center",
-    alignItems: "center",
-   //backgroundColor:"#E6E6FA",
-    //justifyContent:"space-evenly",
-    fontFamily: "SUITE-Medium",
-    color: "#223254",
-    fontSize: 13
-  
-  },
-
-  
-
-  myplace:{
-    //backgroundColor: "white",
-    width: 300,
-    flexDirection:"row",
-    marginTop: 12,
-    //marginBottom: 5,
-    borderBottomColor: 'rgba(0, 50, 100, 0.1)',
-    borderBottomWidth: 1,
-    paddingBottom: 2,
-    height: 26,
-    textAlign:"left",
-    //alignItems: "center",
-    justifyContent:"flex-start",
-    fontSize:16,
-    // borderColor: 'rgba(0, 50, 0, 0.2)',
-    // borderWidth: 2,
-    // borderRadius: 15,
-  },
-  
-  bookmarkPad:{
-    paddingLeft: 10,
-    paddingBottom: 10,
-    flexDirection:"column",
-    justifyContent:"flex-start",
-    width: 350,
-    //height: 150,
-    marginTop: 20,
-    marginLeft:20,
-    textAlign:"left",
-    //alignItems: "center",
-    backgroundColor:'rgba(051, 153, 204, 0.3)',
-    fontSize:40
-  
-  },
-
-  location:{
-    paddingLeft: 10,
-    flexDirection:"column",
-    width: 330,
-    height: 130,
-    //marginTop: 40,
-    //marginLeft:20,
-    textAlign:"left",
-    //alignItems: "center",
-    backgroundColor:'rgba(051, 153, 204, 0.3)',
-    justifyContent:"space-evenly",
-    fontSize:40
-  },
-
-  week:{
-    width:SCREEN_WIDTH,
-    flexDirection:"column",
-  
-    height: 700,
-    marginTop: 10,
-  
-    textAlign:"center",
-    alignItems: "flex-start",
-    //backgroundColor:"#00BFFF",
-    justifyContent:"flex-start",
-    fontSize:40,
-    marginBttom: 100
+      //justifyContent:"space-evenly",
+      fontFamily: "SUITE-Medium",
+      color: "#223254",
+      fontSize: 13
     
-  },
-  dayOfweek:{
-   
-    flexDirection:"row",
-    width: 100,
-    height: 20,
-    marginTop: 17,
-    marginLeft : 5,
-    textAlign:"left",
-    alignItems: "flex-start",
-    backgroundColor:"#4169e1",
-    //justifyContent:"space-evenly",
-    fontSize:16
-    
-  },
-  weekly:{
-   
-    flexDirection:"row",
-    width: 360,
-    height: 50,
-    marginLeft : 15,
-    textAlign:"center",
-    alignItems: "flex-start",
-    backgroundColor:"#4169e1",
-    justifyContent:"space-evenly",
-    fontSize:20
-  }
-
-  // table:{
-  //   flexDirection:"row",
-  //   width: 900,
-  //   height: 80,
-  //   marginTop: 5,
-  //   textAlign:"center",
-  //   alignItems: "flex-start",
-  //   backgroundColor:"#00BFFF",
-  //   justifyContent:"space-evenly",
-  //   fontSize:40
-  // },
-  // chart:{
-  //   width:SCREEN_WIDTH*2,
-  //   height: 175,
-  //   flexDirection:"column",
-  //   backgroundColor:"#00BFFF",
-  //   //flex:1,
-  //   //backgroundColor:"teal",
-  //   alignItems:"flex-start",
-  //   //marginTop:10
-  // },
-  // time:{
-  //   //flexDirection:"row",
-  //   marginTop: 15,
-  //   width: 40,
-  //   height:18,
-  //   textAlign:"center",
-  //   alignItems: "center",
-  //   backgroundColor:"#E6E6FA",
-  //   //justifyContent:"space-evenly",
-  //   fontSize:10
-    
-  // },
-  // icon:{
-  //   //flexDirection:"row",
-  //   marginTop:5,
-  //   width: 40,
-  //   height:40,
-  //   textAlign:"center",
-  //   alignItems: "center",
-  //   backgroundColor:"#E6E6FA",
-  //   //justifyContent:"space-evenly",
-  //   fontSize:20
-    
-  // },
-  // hum:{
-  //   //flexDirection:"row",
-  //   marginTop:5,
-  //   width: 60,
-  //   height:40,
-  //   textAlign:"left",
-  //   alignItems: "center",
-  //   backgroundColor:"#6495ED",
-  //   //justifyContent:"space-evenly",
-  //   fontSize:20
-  // },
-  // high:{
-  //   //flexDirection:"row",
-  //   marginTop:5,
-  //   width: 40,
-  //   height:40,
-  //   textAlign:"center",
-  //   alignItems: "center",
-  //   backgroundColor:"#20B2AA",
-  //   //justifyContent:"space-evenly",
-  //   fontSize:20
-  // },
-  // low:{
-  //   //flexDirection:"row",
-  //   marginTop:5,
-  //   width: 40,
-  //   height:40,
-  //   textAlign:"center",
-  //   alignItems: "center",
-  //   backgroundColor:"#66CDAA",
-  //   //justifyContent:"space-evenly",
-  //   fontSize:20,
-  // },
-
-  }
-  ) 
+    },
   
+    
+  
+    myplace:{
+      //backgroundColor: "white",
+      width: 300,
+      flexDirection:"row",
+      marginTop: 12,
+      //marginBottom: 5,
+      borderBottomColor: 'rgba(0, 50, 100, 0.1)',
+      borderBottomWidth: 1,
+      paddingBottom: 2,
+      height: 26,
+      textAlign:"left",
+      //alignItems: "center",
+      justifyContent:"flex-start",
+      fontSize:16,
+      // borderColor: 'rgba(0, 50, 0, 0.2)',
+      // borderWidth: 2,
+      // borderRadius: 15,
+    },
+    
+    bookmarkPad:{
+      paddingLeft: 10,
+      paddingBottom: 10,
+      flexDirection:"column",
+      justifyContent:"flex-start",
+      width: 350,
+      //height: 150,
+      marginTop: 20,
+      marginLeft:20,
+      textAlign:"left",
+      //alignItems: "center",
+      backgroundColor:'rgba(051, 153, 204, 0.3)',
+      fontSize:40
+    
+    },
+  
+    location:{
+      paddingLeft: 10,
+      flexDirection:"column",
+      width: 330,
+      height: 130,
+      //marginTop: 40,
+      //marginLeft:20,
+      textAlign:"left",
+      //alignItems: "center",
+      backgroundColor:'rgba(051, 153, 204, 0.3)',
+      justifyContent:"space-evenly",
+      fontSize:40
+    },
+  
+    week:{
+      width:SCREEN_WIDTH,
+      flexDirection:"column",
+    
+      height: 700,
+      marginTop: 10,
+    
+      textAlign:"center",
+      alignItems: "flex-start",
+      //backgroundColor:"#00BFFF",
+      justifyContent:"flex-start",
+      fontSize:40,
+      marginBttom: 100
+      
+    },
+    dayOfweek:{
+     
+      flexDirection:"row",
+      width: 100,
+      height: 20,
+      marginTop: 17,
+      marginLeft : 5,
+      textAlign:"left",
+      alignItems: "flex-start",
+      backgroundColor:"#4169e1",
+      //justifyContent:"space-evenly",
+      fontSize:16
+      
+    },
+    weekly:{
+     
+      flexDirection:"row",
+      width: 360,
+      height: 50,
+      marginLeft : 15,
+      textAlign:"center",
+      alignItems: "flex-start",
+      backgroundColor:"#4169e1",
+      justifyContent:"space-evenly",
+      fontSize:20
+    }
+  
+    // table:{
+    //   flexDirection:"row",
+    //   width: 900,
+    //   height: 80,
+    //   marginTop: 5,
+    //   textAlign:"center",
+    //   alignItems: "flex-start",
+    //   backgroundColor:"#00BFFF",
+    //   justifyContent:"space-evenly",
+    //   fontSize:40
+    // },
+    // chart:{
+    //   width:SCREEN_WIDTH*2,
+    //   height: 175,
+    //   flexDirection:"column",
+    //   backgroundColor:"#00BFFF",
+    //   //flex:1,
+    //   //backgroundColor:"teal",
+    //   alignItems:"flex-start",
+    //   //marginTop:10
+    // },
+    // time:{
+    //   //flexDirection:"row",
+    //   marginTop: 15,
+    //   width: 40,
+    //   height:18,
+    //   textAlign:"center",
+    //   alignItems: "center",
+    //   backgroundColor:"#E6E6FA",
+    //   //justifyContent:"space-evenly",
+    //   fontSize:10
+      
+    // },
+    // icon:{
+    //   //flexDirection:"row",
+    //   marginTop:5,
+    //   width: 40,
+    //   height:40,
+    //   textAlign:"center",
+    //   alignItems: "center",
+    //   backgroundColor:"#E6E6FA",
+    //   //justifyContent:"space-evenly",
+    //   fontSize:20
+      
+    // },
+    // hum:{
+    //   //flexDirection:"row",
+    //   marginTop:5,
+    //   width: 60,
+    //   height:40,
+    //   textAlign:"left",
+    //   alignItems: "center",
+    //   backgroundColor:"#6495ED",
+    //   //justifyContent:"space-evenly",
+    //   fontSize:20
+    // },
+    // high:{
+    //   //flexDirection:"row",
+    //   marginTop:5,
+    //   width: 40,
+    //   height:40,
+    //   textAlign:"center",
+    //   alignItems: "center",
+    //   backgroundColor:"#20B2AA",
+    //   //justifyContent:"space-evenly",
+    //   fontSize:20
+    // },
+    // low:{
+    //   //flexDirection:"row",
+    //   marginTop:5,
+    //   width: 40,
+    //   height:40,
+    //   textAlign:"center",
+    //   alignItems: "center",
+    //   backgroundColor:"#66CDAA",
+    //   //justifyContent:"space-evenly",
+    //   fontSize:20,
+    // },
+  
+    }
+    ) 

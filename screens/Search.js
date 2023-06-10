@@ -1,6 +1,9 @@
 import React, {useEffect, useState} from 'react';
 import { StatusBar } from "expo-status-bar";
-import { View, Button, Text, Dimensions, StyleSheet, ScrollView, } from 'react-native';
+import { 
+  View, 
+  Text, Dimensions, 
+  StyleSheet, ScrollView, TextInput, Button, Image, Share } from 'react-native';
 import extractUltraSrtWeather from './Main';
 import {extractVilageWeather} from './Main';
 import {commentWeather} from './Main';
@@ -10,10 +13,13 @@ import { makeData } from './Main';
 import {
     LineChart,
   } from "react-native-chart-kit";
+import {LinearGradient} from 'expo-linear-gradient';
 import * as SQLite from 'expo-sqlite';
 
 
+
 const {width:screenWidth} = Dimensions.get("window");
+const {width:SCREEN_WIDTH} = Dimensions.get("window");
 
 const chartConfig = {
     backgroundGradientFrom: "#1E2923",
@@ -27,6 +33,25 @@ const chartConfig = {
   };
 
 const Search = ({ navigation, route }) => {
+    // deer 이미지
+    const hot_deer = require('./src/assets/image/Deer.png');
+    const cold_deer = require('./src/assets/image/cold_deer.png');
+    const normal_deer = require('./src/assets/image/nomal_deer.png');
+    const rain_deer = require('./src/assets/image/rain_deer.png');
+    const wind_deer = require('./src/assets/image/wind_deer.png');
+    const [deerImg, setDeerImg]=useState();
+
+    // 배경색
+    const [backLiner, setBackLiner] = useState();
+
+    //미세먼지 배경색
+    const [dustbackLiner, setDustbackLiner] = useState();
+
+    // 미세먼지 이미지
+    const dustcloud = require('./src/assets/image/wether-icon/dust.png');
+    const cleancloud = require('./src/assets/image/wether-icon/clean.png');
+    const [cloudImg, setCloudImg]=useState();
+
     const [TEMP, setTemp]=useState();
     const [SKY, setSky]=useState();
     const [wind, setWind]=useState();
@@ -63,16 +88,16 @@ const Search = ({ navigation, route }) => {
     const [gptSrcFall, setGptSrcFall]=useState();
     const [gptSensory, setGptSensory]=useState();
     const [gptSrcSensory, setGptSrcSensory]=useState();
+
+    // 이미지 동적 변경을 위한
+    const [isWeatherLoaded, setIsWeatherLoaded] = useState(false);
     
 
 
     const getSearchWeather = async () => {
 
         const { srcUltraSrtInfo, srcVilageInfo, srcPmlist } = route.params;
-        console.log("tqtqtq", srcUltraSrtInfo);
-        //console.log("ㅈㅂ", extractUltraSrtWeather(searchUrl));
-        //const ultraSrtWeatherInfo = extractUltraSrtWeather(searchUrl);
-        console.log("온도도돋",srcUltraSrtInfo)
+        
 
         setSensoryTemp(sensoryTemp(parseFloat(ultraSrtWeatherInfo.temperature),parseFloat(ultraSrtWeatherInfo.humidity)));
         setRainfall(srcUltraSrtInfo.rainfall);
@@ -87,6 +112,8 @@ const Search = ({ navigation, route }) => {
         setPmGrade25(srcPmlist[1]);
         setPmValue10(srcPmlist[2]);
         setPmValue25(srcPmlist[3]);
+
+        setIsWeatherLoaded(true);
     }
 
     const compareWeather = async () => {
@@ -314,149 +341,722 @@ const Search = ({ navigation, route }) => {
         };
       }, []);
 
-    return (
-    <View style={styles.container}>
-        <StatusBar style="light"></StatusBar>
+      // rainfall과 TEMP의 값이 변경되었을 때에만 setDeerImg() 함수 호출되도록 함
+      // 기후별 배경색 변경
+      useEffect(() => {
+        if (rainfall !== "강수없음") {
+          setDeerImg(rain_deer);
+          setBackLiner('#4c5c7c');
+        } else if (parseInt(wind) > 7) {
+          setDeerImg(wind_deer);
+          setBackLiner('#26a69a');
+        } else {
+          if (parseInt(TEMP) > 19) {
+            setDeerImg(hot_deer);
+            setBackLiner('#2980B9'); // #2980B9
+          } else if (parseInt(TEMP) > 9){
+            setDeerImg(normal_deer);
+            setBackLiner('#f97a92');
+          } else {
+            setDeerImg(cold_deer);
+            setBackLiner('#ffcdd2');
+          }
+        }
+      }, [rainfall, TEMP, wind]);
 
+      useEffect(() => {
+        if (pmGrade10 == "좋음" || pmGrade10 == "보통"){
+          setCloudImg(cleancloud);
+          setDustbackLiner('#82b1ff');
+        }
+        else{
+          setCloudImg(dustcloud);
+          setDustbackLiner('#ffd180');
+        }
+        
+      }, [pmGrade10]);
+
+      return (
+
+        <LinearGradient colors={[backLiner, '#C4E0E5',]} start={[0.1, 0.2]} style={styles.container}>
+        <StatusBar style="light"></StatusBar>
+  
+  
+  
+  
+  {/* 현재날짜요일시간 */}
+  <Text style={styles.date}>5월 31일 수요일</Text>
+  
+  
+  
+  
+  {/* 스크롤 적용구간 */}
+  
+      <View style={styles.weather}>
+       
         <ScrollView
-        pagingEnabled 
-        showsHorizontalScrollIndicator={false}
-        horizontal 
-        contentContainerStyle={styles.weather}
+          pagingEnabled={false}
+          showsHorizontalScrollIndicator={false}
+          horizontal ={false}
+          contentContainerStyle={styles.weather}
         >
-        <View style={styles.day}>
-        {isLoading ? (
-        <Text>Loading...</Text> // 로딩 상태 표시
-        ) : (
-            <>{tempData && (
-            <LineChart
-                data={tempData}
-                width={screenWidth}
-                height={220}
-                chartConfig={chartConfig}
-            />)} 
-            </>
-        )}
-            <Text style={styles.temp}>{TEMP}</Text>
-            <Text style={styles.description}>{SKY} {district}</Text>
-            <Text style={styles.description}>{adviceTemp}</Text>
-        </View>
-        <View style={styles.day}>
-        {isLoading ? (
-        <Text>Loading...</Text> // 로딩 상태 표시
-        ) : (
-        <>
-            {windData && (
-            <LineChart
-            data={windData}
-            width={screenWidth}
-            height={220}
-            chartConfig={chartConfig}
+  
+          {/* 현재위치 기온 & 코멘트 */}
+  
+            <View style={styles.row}>
+            <View style={styles.Myloca}>
+          {/* <Text style={styles.cityName}>{city} {subregion} {district}</Text> */}
+          <Text style={styles.cityName}>(검색장소)</Text>
+          <Text style={styles.temp}>{TEMP}</Text>
+            <Text style={styles.description}>{SKY}</Text>
+            {/* <Text style={styles.message}>{advice}</Text> */}
+            </View>
+   
+            
+       {/* 캐릭터 이미지 */}
+  
+       <View style={styles.image}>
+            {isWeatherLoaded && ( // 기온과 강수량이 로딩된 후에 이미지가 렌더링 되도록 변경
+            <Image
+              style={styles.image}
+              source={deerImg}
+              resizeMode={"contain"}
             />
-            )}  
-        </>
-        )}
-            <Text style={styles.temp}>{lowerTEMP} {locationName}</Text>
-            <Text style={styles.description}>{upperTEMP}</Text>
-            <Text style={styles.description}>{adviceWind}</Text>
-        </View>
-        <View style={styles.day}>
+            )}
+          </View>
+            </View>
+            
+  
+           {/* 4개 아이콘 데이터 */}
+          
+          <View style={styles.degree}>
+  
+          
+        <View style={styles.column}>
+        <Text  style={styles.dataname}>풍속</Text>
+          <View style={styles.circle}>
+          <Image
+        style={styles.circlePad}
+        source={require('./src/assets/image/wether-icon/wind.png')}
+        resizeMode={"contain"}
+          />
+          </View>
+          <Text style={styles.datavalue}>{wind}</Text >
+          </View>
+  
+          <View style={styles.column}>
+        <Text style={styles.dataname}>강수량</Text>
+          <View style={styles.circle}>
+          <Image
+        style={styles.circlePad}
+        source={require('./src/assets/image/wether-icon/rain-umbrella.png')}
+        resizeMode={"contain"}
+          />
+          </View>
+          <Text style={styles.datavalue}>{rainfall}</Text>
+          </View>
+  
+          <View style={styles.column}>
+        <Text style={styles.dataname}>체감온도</Text>
+          <View style={styles.circle}>
+          <Image
+        style={styles.circlePad}
+        source={require('./src/assets/image/wether-icon/humidity.png')}
+        resizeMode={"contain"}
+          />
+          </View>
+          <Text style={styles.datavalue}>{sensoryTEMP}</Text>
+          </View>
+  
+          <View style={styles.column}>
+        <Text style={styles.dataname}>최고/최저</Text>
+          <View style={styles.circle}>
+          <Image
+        style={styles.circlePad}
+        source={require('./src/assets/image/wether-icon/sun.png')}
+        resizeMode={"contain"}
+          />
+          </View>
+          <Text style={styles.datavalue}>{upperTEMP}/{lowerTEMP}</Text>
+          </View>
+  
+          </View>
+
+          <LinearGradient colors={[dustbackLiner, '#6DD5FA',]} start={[0.1, 0.2]} style={styles.container}>
+            <View style={styles.dustPad}>
+              {isWeatherLoaded && (
+                <Image
+                style={styles.dustIcon}
+                source={cloudImg}
+                resizeMode={"contain"}
+                  />
+              )}
+            
+              <View style={styles.dustData}>
+              <View styel={styles.column}>
+              <Text style={styles.pmGrade}> 미세먼지 </Text> 
+              <Text style={styles.pmGrade}> {pmGrade10}</Text> 
+                </View>
+                <View styel={styles.column}>
+                <Text style={styles.pm}> 미세먼지   {pmValue10}</Text> 
+                <Text style={styles.pm}> 초 미세먼지   {pmValue25}</Text> 
+                </View>
+              </View>
+            </View>
+          </LinearGradient>
+          
+  
+  
+  
+  <View style={styles.detail}>
+          <ScrollView
+              pagingEnabled 
+              showsHorizontalScrollIndicator={false}
+              horizontal 
+              contentContainerStyle={styles.detail}
+        >
+          <View style={styles.day}>
+  
+          <View style={styles.chart}>
+            
+  
+          <View>
+                {/* <Image source={imageSource} style={{ width: 200, height: 200 }} /> */}
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 5 }}>
+                  <Button title="기온" />
+                  <Button title="체감온도" />
+                  <Button title="미세먼지" />
+                  <Button title="풍속" />
+                  <Button title="강수량" />
+                </View>
+              </View>
+  
+  {/* 
           {isLoading ? (
-          <Text>Loading...</Text> // 로딩 상태 표시
+          <Text>Loading…</Text> // 로딩 상태 표시
+          ) : (
+              <>{chartData && (
+              <LineChart
+                  data={chartData}
+                  width={350}
+                  height={180}
+                  chartConfig={chartConfig}
+              />)} 
+              </>
+          )} */}
+          </View>
+          <Text style={styles.de}>??{adviceTemp}</Text>
+  
+              <View style={styles.chart}>
+              {isLoading ? (
+            <Text>Loading…</Text> // 로딩 상태 표시
+            ) : (
+                <>{sensoryData && (
+                <LineChart
+                    data={sensoryData}
+                    width={350}
+                    height={160}
+                    chartConfig={chartConfig}
+                />)} 
+                </>
+            )}
+              <Text style={styles.ment}>{lowerTEMP}</Text>
+              <Text style={styles.ment}>{upperTEMP}</Text>
+            </View>
+        
+          
+          </View>
+  
+          <View style={styles.day}>
+          {isLoading ? (
+          <Text>Loading…</Text> // 로딩 상태 표시
           ) : (
           <>
-              {rainData && (
+              {windData && (
               <LineChart
-              data={rainData}
-              width={screenWidth}
+              data={windData}
+              width={SCREEN_WIDTH}
               height={220}
               chartConfig={chartConfig}
               />
               )}  
           </>
           )}
-          <Text style={styles.temp}>미세먼지 등급 </Text>
-          <Text style={styles.description}>{pmGrade10}</Text>
-          <Text style={styles.description}>{adviceFall}</Text>
-        </View>
-        <View style={styles.day}>
-        {isLoading ? (
-          <Text>Loading...</Text> // 로딩 상태 표시
-          ) : (
-              <>{sensoryData && (
-              <LineChart
-                  data={sensoryData}
-                  width={screenWidth}
-                  height={220}
-                  chartConfig={chartConfig}
-              />)} 
-              </>
-          )}
-          <Text style={styles.temp}>초미세먼지 등급</Text>
-          <Text style={styles.description}>{pmGrade25}</Text> 
-          <Text style={styles.description}>{adviceSensory}</Text>
-        </View>
-        <View style={styles.day}>
-            <Text style={styles.temp}>미세먼지 농도</Text>
-            <Text style={styles.description}>{pmValue10}</Text>
-        </View>
-        <View style={styles.day}>
-            <Text style={styles.temp}>초미세먼지 농도</Text>
-            <Text style={styles.description}>{pmValue25}</Text>
-        </View>
-        <View style={styles.day}>
-            <Text style={styles.temp}>체감온도</Text>
-            <Text style={styles.description}>{sensoryTEMP}</Text>
-        </View>
-        <View style={styles.day}>
-            <Text style={styles.temp}>풍속</Text>
-            <Text style={styles.description}>{wind}</Text>
-        </View>
-        <View style={styles.day}>
-            <Text style={styles.temp}>강수량</Text>
-            <Text style={styles.description}>{rainfall}</Text>
-        </View>
-        
-        </ScrollView>
-    </View>
-    );
-    
-}
+              
+          </View>
+          <View style={styles.day}>
+            {isLoading ? (
+            <Text>Loading…</Text> // 로딩 상태 표시
+            ) : (
+            <>
+                {rainData && (
+                <LineChart
+                data={rainData}
+                width={SCREEN_WIDTH}
+                height={220}
+                chartConfig={chartConfig}
+                />
+                )}  
+            </>
+            )}
+            <Text style={styles.detailTitle}>미세먼지 등급 </Text>
+            <Text style={styles.description}>{pmGrade10}</Text>
+          </View>
+          <View style={styles.day}>
+         
+            <Text style={styles.detailTitle}>초미세먼지 등급</Text>
+            <Text style={styles.description}>{pmGrade25}</Text> 
+          </View>
+          <View style={styles.day}>
+              <Text style={styles.detailTitle}>미세먼지 농도</Text>
+              <Text style={styles.description}>{pmValue10}</Text>
+          </View>
+          <View style={styles.day}>
+              <Text style={styles.detailTitle}>초미세먼지 농도</Text>
+              <Text style={styles.description}>{pmValue25}</Text>
+          </View>
+          <View style={styles.day}>
+              <Text style={styles.detailTitle}>체감온도</Text>
+              <Text style={styles.description}>{sensoryTEMP}</Text>
+          </View>
+          <View style={styles.day}>
+              <Text style={styles.detailTitle}>풍속</Text>
+              <Text style={styles.description}>{wind}</Text>
+          </View>
+          <View style={styles.day}>
+              <Text style={styles.detailTitle}>강수량</Text>
+              <Text style={styles.description}>{rainfall}</Text>
+          </View>
+          </ScrollView>
+          </View>
+          </ScrollView>
+          </View>
+          </LinearGradient>
+      );
+      
+  }
+  
 
 const styles = StyleSheet.create({
-    container:{
-        flex:1, 
-        backgroundColor:"green"
+  container:{
+    // paddingTop : 10,
+    alignItems: "center",
+    justifyContent: "flex-start",
+   // backgroundColor: "2980b9"
+    // height:1500
+  },
+  
+    date:{
+      //flexDirection:"row",
+      paddingTop:10,
+      marginTop: 5,
+      marginLeft: 20,
+      marginBottom: 5,
+      width: 350,
+      height:30,
+      textAlign:"center",
+      alignItems: "center",
+      color: "white",
+      // backgroundColor:"#E6E6FA",
+      //justifyContent:"space-evenly",
+      fontSize: 14
+    },
+
+    detail:{
+      height: 500,
+    },
+
+    detailTitle:{ 
+      fontSize: 30,
+
+    },
+
+    search:{
+      //flexDirection:"row",
+      justifyContent: "flex-start",
+      marginTop: 5,
+      width:SCREEN_WIDTH,
+      height:40,
+      textAlign:"center",
+      alignItems: "center",
+      // backgroundColor:"skyblue",
+      //justifyContent:"space-evenly",
+      fontSize:20
+    
     },
     city:{
-        flex:1,
-        //backgroundColor:"blue",
-        justifyContent:"center",
-        alignItems:"center"
+      width: 180,
+      //height:18,
+      //marginLeft:20,
+      height: 170,
+      // backgroundColor:"skyblue",
+      justifyContent:"flex-start",
+      textAlign: "center",
+      alignItems:"center"
     },
     cityName:{
-        fontSize:60,
-        fontWeight:"500"
+      width: 180,
+      marginTop: 10,
+      marginLeft: 20,
+      fontSize:26,
+      fontWeight:"500"
     },
     weather:{
-        //flex:3,
-        //backgroundColor:"blue"
+      width : SCREEN_WIDTH,
+      //height : 1000,
+      justifyContent:"space-between",
+      // backgroundColor:"blue",
+      alignItems: "flex-start",
     },
     day:{
-        width:screenWidth,
-        //flex:1,
-        //backgroundColor:"teal",
-        alignItems:"center"
+      width:SCREEN_WIDTH,
+     // height: 600,
+      flexDirection:"column",
+        backgroundColor:'rgba(30, 100, 200, 0.1)',
+      //flex:1,
+      //backgroundColor:"teal",
+      alignItems:"flex-start",
+      marginTop:10
+    },
+    
+    row:{
+      //backgroundColor:"#4169e1",
+      justifyContent:"center",
+      flexDirection:"row",
+      height: 200,
+      width : 390
+    },
+    column:{
+      paddingBottom: 5,
+      justifyContent:"flex-start",
+      flexDirection:"column"
+    },
+    rowlable:{
+      flexDirection:"row"
+    },
+    Myloca:{
+      paddingLeft: 10,
+      paddingTop: 20,
+      width : 180,
+      height : 210,
+      marginTop : 20,
+      marinLeft: 10,
+      marginRight: 5,
+      //justifyContent:"flex-evenly",
+      alignItems: "center",
+      textAlign: "center",
+       //backgroundColor:"skyblue",
+      flexDirection:"column",
     },
     temp:{
-        marginTop:30,
-        fontSize:100,
+      width : 300,
+      height : 80,
+      justifyContent:"flex-start",
+      alignItems: "center",
+      textAlign: "center",
+      // backgroundColor:"skyblue",
+      flexDirection:"column",
+      marginLeft:20,
+      //marginTop:10,
+      fontSize:70
     },
+    image:{
+      width: 180,
+      height: 210,
+      justifyContent:"flex-end",
+      // backgroundColor:"#000080",
+      marginLeft:5,
+      marginTop:10
+    },
+  
     description:{
-        fontSize:70,
-    }
-    })
-
+      width:170,
+      height:40,
+      marginTop:5,
+      marginLeft:20,
+      textAlign:"center",
+      // backgroundColor:"#00BFFF",
+      //justifyContent:"center",
+      fontSize:35
+      
+    },
+    
+    circle: {
+      width: 45,
+      height: 45,
+      borderRadius: 100 / 2,
+      backgroundColor: 'rgba(30, 100, 200, 0.1)'
+    },
+    circlePad: {
+      width: 45,
+      height: 45,
+      // backgroundColor: 'rgba(30, 100, 200, 0.1)'
+    },
+    datavalue: {
+      width: 45,
+      height: 12,
+      fontFamily: "SUITE-Medium",
+      fontSize: 10,
+      textAlign:"center",
+      marginTop : 3,
+      //backgroundColor: "blue"
+    },
+    dataname: {
+      width: 45,
+      height: 12,
+      fontFamily: "SUITE-Medium",
+      fontSize : 10,
+      textAlign:"center",
+      marginBottom : 3
+  
+      //backgroundColor: "blue"
+    },
+   
+    
+    degree:{
+      flexDirection:"row",
+      width: 370,
+      height: 100,
+      marginTop: 20,
+      marginLeft:10,
+      textAlign:"center",
+      alignItems: "center",
+      // backgroundColor:"#00BFFF",
+      justifyContent:"space-evenly",
+      fontSize:40
+      
+    },
+  
+  
+    chatGPT:{
+      flexDirection:"row",
+      width: 370,
+      height: 100,
+      marginTop: 20,
+      marginLeft:10,
+      textAlign:"center",
+      alignItems: "center",
+      // backgroundColor:"#00BFFF",
+      justifyContent:"space-evenly",
+      fontSize:40
+      
+    },
+  
+    
+    message:{
+      //flexDirection:"row",
+      marginTop: 10,
+      marginLeft: 20,
+     // width: 350,
+      height:25,
+      textAlign:"center",
+      alignItems: "center",
+      // backgroundColor:"#E6E6FA",
+      //justifyContent:"space-evenly",
+      fontFamily: "SUITE-Medium",
+      fontSize:16
+    
+    },
+  
+    
+    miniIcon:{
+      // backgroundColor: "white",
+      width: 14,
+      height: 16,
+      marginTop: 4,
+      alignItems: "center",
+    },
+  
+    card:{
+      marginTop: 12,
+      marginLeft: 20,
+      marginBottom: 15,
+      paddingLeft: 10,
+      paddingTop: 3,
+      width: 350,
+      height: 200,
+      textAlign:"left",
+      alignItems: "center",
+      flexDirection:"row",
+      //justifyContent:"space-evenly",
+      fontSize:16,
+      backgroundColor: 'rgba(0, 100, 150, 0.1)',
+      borderColor: 'rgba(0, 50, 0, 0.2)',
+      borderWidth: 2,
+      borderRadius: 15,
+    },
+  
+    ment:{
+      // backgroundColor: "white",
+      fontFamily: "SUITE-Medium",
+      // width: 350,
+      height: 18,
+      margin: 2,
+      textAlign:"left",
+      //justifyContent:"space-evenly",
+      fontSize:16,
+    },
+  
+  
+    dustPad:{
+      marginTop: 10,
+      backgroundColor:'rgba(0, 50, 0, 0.2)',
+      justifyContent:"center",
+      flexDirection:"row",
+      height: 110,
+      width : 390
+    },
+    
+    dustData:{
+      marginTop: 12,
+      marginLeft: 10,
+      paddingTop: 5,
+      width: 190,
+      height:80,
+      flexDirection:"row",
+      textAlign:"left",
+      alignItems: "center",
+      //backgroundColor:"#E6E6FA",
+      justifyContent:"flex-start",
+      fontSize:16
+    },
+    
+    dustIcon:{
+      marginTop: 15,
+      //marginLeft: 20,
+      width: 110,
+      height:80,
+      alignItems: "center",
+      //backgroundColor:"#E6E6FA",
+      //justifyContent:"space-evenly",
+      fontSize:16
+    },
+   
+    pmGrade:{
+      //flexDirection:"row",
+      marginTop: 5,
+      marginLeft: 5,
+     // width: 350,
+      height:20,
+      textAlign:"center",
+      alignItems: "center",
+       //backgroundColor:"#E6E6FA",
+      //justifyContent:"space-evenly",
+      fontFamily: "SUITE-Medium",
+      fontSize:16
+    
+    },
+  
+    pm:{
+      //flexDirection:"row",
+      marginTop: 10,
+      marginLeft: 20,
+     // width: 350,
+      height:20,
+      textAlign:"center",
+      alignItems: "center",
+     //backgroundColor:"#E6E6FA",
+      //justifyContent:"space-evenly",
+      fontFamily: "SUITE-Medium",
+      color: "#223254",
+      fontSize: 13
+    
+    },
+  
+    
+  
+    myplace:{
+      //backgroundColor: "white",
+      width: 300,
+      flexDirection:"row",
+      marginTop: 12,
+      //marginBottom: 5,
+      borderBottomColor: 'rgba(0, 50, 100, 0.1)',
+      borderBottomWidth: 1,
+      paddingBottom: 2,
+      height: 26,
+      textAlign:"left",
+      //alignItems: "center",
+      justifyContent:"flex-start",
+      fontSize:16,
+      // borderColor: 'rgba(0, 50, 0, 0.2)',
+      // borderWidth: 2,
+      // borderRadius: 15,
+    },
+    
+    bookmarkPad:{
+      paddingLeft: 10,
+      paddingBottom: 10,
+      flexDirection:"column",
+      justifyContent:"flex-start",
+      width: 350,
+      //height: 150,
+      marginTop: 20,
+      marginLeft:20,
+      textAlign:"left",
+      //alignItems: "center",
+      backgroundColor:'rgba(051, 153, 204, 0.3)',
+      fontSize:40
+    
+    },
+  
+    location:{
+      paddingLeft: 10,
+      flexDirection:"column",
+      width: 330,
+      height: 130,
+      //marginTop: 40,
+      //marginLeft:20,
+      textAlign:"left",
+      //alignItems: "center",
+      backgroundColor:'rgba(051, 153, 204, 0.3)',
+      justifyContent:"space-evenly",
+      fontSize:40
+    },
+  
+    week:{
+      width:SCREEN_WIDTH,
+      flexDirection:"column",
+    
+      height: 700,
+      marginTop: 10,
+    
+      textAlign:"center",
+      alignItems: "flex-start",
+      //backgroundColor:"#00BFFF",
+      justifyContent:"flex-start",
+      fontSize:40,
+      marginBttom: 100
+      
+    },
+    dayOfweek:{
+     
+      flexDirection:"row",
+      width: 100,
+      height: 20,
+      marginTop: 17,
+      marginLeft : 5,
+      textAlign:"left",
+      alignItems: "flex-start",
+      backgroundColor:"#4169e1",
+      //justifyContent:"space-evenly",
+      fontSize:16
+      
+    },
+    weekly:{
+     
+      flexDirection:"row",
+      width: 360,
+      height: 50,
+      marginLeft : 15,
+      textAlign:"center",
+      alignItems: "flex-start",
+      backgroundColor:"#4169e1",
+      justifyContent:"space-evenly",
+      fontSize:20
+    },
+  }
+)
   
 
 
