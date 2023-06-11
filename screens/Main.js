@@ -649,8 +649,8 @@ export default function Main() {
   const [dustbackLiner, setDustbackLiner] = useState();
 
   // 미세먼지 이미지
-  const dustcloud = require('./src/assets/image/wether-icon/dust.png');
-  const cleancloud = require('./src/assets/image/wether-icon/clean.png');
+  const dustcloud = require('./src/assets/image/weather-icon/dust.png');
+  const cleancloud = require('./src/assets/image/weather-icon/clean.png');
   const [cloudImg, setCloudImg]=useState();
 
   const [city, setCity]=useState("Loading...");
@@ -1337,11 +1337,11 @@ export default function Main() {
 
   return (
    
-      // <LinearGradient colors={['#2980B9', '#6DD5FA',]} start={[0.1, 0.2]} style={styles.container}>
-      
-      <LinearGradient colors={[backLiner, '#6DD5FA',]} start={[0.1, 0.2]} style={styles.container}>
-      
-      <StatusBar style="light"></StatusBar>
+    // <LinearGradient colors={['#2980B9', '#6DD5FA',]} start={[0.1, 0.2]} style={styles.container}>
+    
+    <LinearGradient colors={[backLiner, '#6DD5FA',]} start={[0.1, 0.2]} style={styles.container}>
+    
+    <StatusBar style="light"></StatusBar>
 
 
 
@@ -1351,20 +1351,21 @@ export default function Main() {
 <View style={styles.search}>
 <View style={styles.row}>
 
-  {/* 검색창 */}
+{/* 검색창 */}
 <TextInput
-        style={{ height: 25, width: 250, borderColor: '#455A64',borderRadius: 10, borderWidth: 1, paddingLeft: 5, marginBottom: 20, backgroundColor:'rgba(30, 100, 200, 0.1)', fontSize: 14,}}
-        placeholder="지역명을 입력하세요"
+      style={{ height: 25, width: 250, borderColor: '#455A64',borderRadius: 10, borderWidth: 1, paddingLeft: 5, marginBottom: 20, backgroundColor:'rgba(30, 100, 200, 0.1)', fontSize: 14,}}
+      placeholder="지역명을 입력하세요"
 
-        value={locationName}
-        onChangeText={text => setLocationName(text)}
-      />
-      
-      <Button title="검색" onPress={searchLocation} />
-      </View>
-     
+      value={locationName}
+      onChangeText={text => setLocationName(text)}
+    />
+    
+    <Button title="검색" onPress={searchLocation} />
+    </View>
+   
 {/* <FilterProd ucts /> */}
 </View>  
+
 
 
 {/* 스크롤 적용구간 */}
@@ -1382,12 +1383,11 @@ export default function Main() {
         <Text style={styles.cityName}>{city} {subregion} {district}</Text>
         <Text style={styles.temp}>{TEMP}</Text>
           <Text style={styles.description}>{SKY}</Text>
-          <Text style={styles.message}>{advice}</Text>
+         
           </View>
  
-          
      {/* 캐릭터 이미지 */}
-
+      
           <View style={styles.image}>
             {isWeatherLoaded && ( // 기온과 강수량이 로딩된 후에 이미지가 렌더링 되도록 변경
             <Image
@@ -1398,18 +1398,13 @@ export default function Main() {
             )}
           </View>
           
-          {/* <View style={styles.image}>
-          <Image
-      style={styles.image}
-      source={cold_deer}
-      // source={require('./src/assets/image/Deer.png')}
-      // source={require('./src/assets/image/cold_deer.PNG')}
-      resizeMode={"contain"}
-        />
-          </View> */}
           </View>
+
+          {/* GPT멘트 */}
           
-          
+        <View style={styles.GPTcard}>
+        <Text>{advice}</Text>
+          </View>
 
          {/* 4개 아이콘 데이터 */}
         
@@ -1420,7 +1415,7 @@ export default function Main() {
         <View style={styles.circle}>
         <Image
       style={styles.circlePad}
-      source={require('./src/assets/image/wether-icon/wind.png')}
+      source={require('./src/assets/image/weather-icon/wind.png')}
       resizeMode={"contain"}
         />
         </View>
@@ -1432,7 +1427,7 @@ export default function Main() {
         <View style={styles.circle}>
         <Image
       style={styles.circlePad}
-      source={require('./src/assets/image/wether-icon/rain-umbrella.png')}
+      source={require('./src/assets/image/weather-icon/rain-umbrella.png')}
       resizeMode={"contain"}
         />
         </View>
@@ -1444,7 +1439,7 @@ export default function Main() {
         <View style={styles.circle}>
         <Image
       style={styles.circlePad}
-      source={require('./src/assets/image/wether-icon/humidity.png')}
+      source={require('./src/assets/image/weather-icon/humidity.png')}
       resizeMode={"contain"}
         />
         </View>
@@ -1456,7 +1451,7 @@ export default function Main() {
         <View style={styles.circle}>
         <Image
       style={styles.circlePad}
-      source={require('./src/assets/image/wether-icon/sun.png')}
+      source={require('./src/assets/image/weather-icon/sun.png')}
       resizeMode={"contain"}
         />
         </View>
@@ -1486,6 +1481,7 @@ export default function Main() {
         {/* 공유 버튼 누르면 gpt 멘트 공유 가능 */}
         <Button 
           title="공유"
+          style={{height: 10, fontSize:10,}}
           onPress={async () => await Share.share({ message: shareTwo,})}>
         </Button>
           
@@ -1495,7 +1491,7 @@ export default function Main() {
         </>
       
 
-        
+
       
       {/*  미세 먼지  */}
       <LinearGradient colors={[dustbackLiner, '#6DD5FA',]} start={[0.1, 0.2]} style={styles.container}>
@@ -1507,7 +1503,6 @@ export default function Main() {
           resizeMode={"contain"}
             />
         )}
-      
         <View style={styles.dustData}>
         <View styel={styles.column}>
         <Text style={styles.pmGrade}> 미세먼지 </Text> 
@@ -1521,6 +1516,69 @@ export default function Main() {
       </View>
       </LinearGradient>
 
+      <View style={styles.title}>
+      <View style={styles.rowlable}>
+         <Image
+      style={styles.miniIcon}
+      source={require('./src/assets/image/clock.png')}
+      resizeMode={"contain"}
+        />
+           <Text style={styles.ment}> 시간대별 기온</Text>
+         </View>
+         </View>
+        <ScrollView
+           pagingEnabled={false}
+           showsHorizontalScrollIndicator={false}
+           horizontal
+           contentContainerStyle={styles.chart}>
+
+        <View style={styles.chart}>
+        
+        {isLoading ? (
+        <Text>Loading...</Text> // 로딩 상태 표시
+        ) : (
+          <> 
+          {tempData && (
+            <LineChart
+              data={tempData}
+              width={SCREEN_WIDTH*2}
+              height={170}
+              chartConfig={{
+                backgroundColor: 'skyblue',
+                backgroundGradientFrom: "#2980B9",
+                backgroundGradientFromOpacity: 0.3,
+                backgroundGradientTo: "rgba(50, 160, 200, 0.1)",
+                decimalPlaces: 2, // optional, defaults to 2dp
+                withShadow: false,
+                color: (opacity = 0.8) => `rgba(10, 80, 120, ${opacity})`,
+                labelColor: (opacity = 0.5) => `rgba(50, 100, 180, ${opacity})`,
+                style: {
+                  borderRadius: 16,
+                },
+                propsForDots: {
+                  r: "2",
+                  strokeWidth: "2",
+                  // stroke: "#ffa726"
+                },
+                propsForBackgroundLines: {
+                  color: 'rgba(80, 140, 200, 0.2)',
+                  stroke:'rgba(80, 140, 200, 0.3)',
+                  strokeDasharray:[],
+                },
+                useShadowColorFromDataset: true
+              }}
+            bezier
+            style={{
+            marginVertical: 8,
+             borderRadius: 8,
+
+              }}
+        />)} 
+           
+          </>
+        )}
+        </View>
+          </ScrollView>
 
       {/* 즐겨찾기 */}
          <View style={styles.bookmarkPad}>
@@ -1528,7 +1586,7 @@ export default function Main() {
          <View style={styles.rowlable}>
          <Image
       style={styles.miniIcon}
-      source={require('./src/assets/image/wether-icon/bookmark.png')}
+      source={require('./src/assets/image/weather-icon/bookmark.png')}
       resizeMode={"contain"}
         />
          <Text style={styles.ment}> MyPlace                                                        </Text>  
@@ -1574,7 +1632,6 @@ export default function Main() {
          <Text style={styles.ment}> {favorite3} </Text>
          </View>
          </View>
-         
 
 
 
@@ -1583,9 +1640,7 @@ export default function Main() {
         <Text style={styles.dayOfweek}>
             오늘
           </Text>
-        <View style={styles.hum}></View>
-        <View style={styles.icon}></View>
-        <View style={styles.icon}></View>
+   
         <Text style={styles.high}>{lowerTEMP}</Text>
         <Text style={styles.low}>{lowerTEMP}</Text>
        </View>
@@ -1594,9 +1649,7 @@ export default function Main() {
         <Text style={styles.dayOfweek}>
             내일
           </Text>
-        <View style={styles.hum}></View>
-        <View style={styles.icon}></View>
-        <View style={styles.icon}></View>
+       
         <Text style={styles.high}>{tomorrowMax}</Text>
         <Text style={styles.low}>{tomorrowMin}</Text>
        </View>
@@ -1605,9 +1658,7 @@ export default function Main() {
         <Text style={styles.dayOfweek}>
             모레
           </Text>
-        <View style={styles.hum}></View>
-        <View style={styles.icon}></View>
-        <View style={styles.icon}></View>
+   
         <Text style={styles.high}>{afterTomorrowMax}</Text>
         <Text style={styles.low}>{afterTomorrowMin}</Text>
        </View>
@@ -1616,9 +1667,7 @@ export default function Main() {
         <Text style={styles.dayOfweek}>
           {dayofweek3}
           </Text>
-        <View style={styles.hum}></View>
-        <View style={styles.icon}></View>
-        <View style={styles.icon}></View>
+    
         <Text style={styles.high}>{min3}.0</Text>
         <Text style={styles.low}>{max3}.0</Text>
        </View>
@@ -1627,9 +1676,7 @@ export default function Main() {
         <Text style={styles.dayOfweek}>
           {dayofweek4}
           </Text>
-        <View style={styles.hum}></View>
-        <View style={styles.icon}></View>
-        <View style={styles.icon}></View>
+  
         <Text style={styles.high}>{min4}.0</Text>
         <Text style={styles.low}>{max4}.0</Text>
        </View>
@@ -1638,9 +1685,7 @@ export default function Main() {
         <Text style={styles.dayOfweek}>
           {dayofweek5}
           </Text>
-        <View style={styles.hum}></View>
-        <View style={styles.icon}></View>
-        <View style={styles.icon}></View>
+    
         <Text style={styles.high}>{min5}.0</Text>
         <Text style={styles.low}>{max5}.0</Text>
        </View>
@@ -1649,16 +1694,14 @@ export default function Main() {
         <Text style={styles.dayOfweek}>
           {dayofweek6}  
           </Text>
-        <View style={styles.hum}></View>
-        <View style={styles.icon}></View>
-        <View style={styles.icon}></View>
+       
         <Text style={styles.high}>{min6}.0</Text>
         <Text style={styles.low}>{max6}.0</Text>
        </View>
         
         </View>
-
-        <View style={styles.day}>
+{/* 
+        <View style={styles.chart}>
         {isLoading ? (
         <Text>Loading...</Text> // 로딩 상태 표시
         ) : (
@@ -1673,6 +1716,7 @@ export default function Main() {
         )}
             
         </View>
+
         <View style={styles.day}>
         {isLoading ? (
         <Text>Loading...</Text> // 로딩 상태 표시
@@ -1719,9 +1763,9 @@ export default function Main() {
                   chartConfig={chartConfig}
               />)} 
               </>
-          )}
+          )} */}
           
-        </View>
+        {/* </View> */}
 
         </ScrollView>
         </View>
@@ -1735,472 +1779,517 @@ export default function Main() {
   
   const styles = StyleSheet.create({
     container:{
-      paddingTop : 10,
-      justifyContent: "flex-start",
-      backgroundColor: "2980b9"
-      //height:1800
-    },
-    date:{
-      //flexDirection:"row",
-      paddingTop:10,
-      marginTop: 30,
-      marginLeft: 20,
-      marginBottom: 5,
-      width: 350,
-      height:30,
-      textAlign:"center",
-      alignItems: "center",
-      color: "white",
-      // backgroundColor:"#E6E6FA",
-      //justifyContent:"space-evenly",
-      fontSize: 14
-    },
-    search:{
-      //flexDirection:"row",
-      justifyContent: "flex-start",
-      marginTop: 5,
-      width:SCREEN_WIDTH,
-      height:40,
-      textAlign:"center",
-      alignItems: "center",
-      // backgroundColor:"skyblue",
-      //justifyContent:"space-evenly",
-      fontSize:20
-    
-    },
-    city:{
-      width: 180,
-      //height:18,
-      //marginLeft:20,
-      height: 170,
-      // backgroundColor:"skyblue",
-      justifyContent:"flex-start",
-      textAlign: "center",
-      alignItems:"center"
-    },
-    cityName:{
-      width: 180,
-      marginTop: 10,
-      marginLeft: 20,
-      fontSize:26,
-      fontWeight:"500"
-    },
-    weather:{
-      width : SCREEN_WIDTH,
-      //height : 1000,
-      justifyContent:"space-between",
-      // backgroundColor:"blue",
-      alignItems: "flex-start",
-    },
-    day:{
-      width:SCREEN_WIDTH,
-      height: 600,
-      flexDirection:"column",
-      //  backgroundColor:"#AFEEEE",
-      //flex:1,
-      //backgroundColor:"teal",
-      alignItems:"flex-start",
-      marginTop:10
-    },
-    
-    row:{
-      //backgroundColor:"#4169e1",
-      justifyContent:"center",
-      flexDirection:"row",
-      height: 200,
-      width : 390
-    },
-    column:{
-      paddingBottom: 5,
-      justifyContent:"flex-start",
-      flexDirection:"column"
-    },
-    rowlable:{
-      flexDirection:"row"
-    },
-    Myloca:{
-      paddingLeft: 10,
-      width : 180,
-      height : 210,
-      marginTop : 20,
-      marinLeft: 10,
-      marginRight: 5,
-      //justifyContent:"flex-start",
-      alignItems: "center",
-      textAlign: "center",
-      // backgroundColor:"skyblue",
-      flexDirection:"column",
-    },
-    temp:{
-      width : 180,
-      height : 80,
-      justifyContent:"flex-start",
-      alignItems: "center",
-      textAlign: "center",
-      // backgroundColor:"skyblue",
-      flexDirection:"column",
-      marginLeft:20,
-      //marginTop:10,
-      fontSize:70
-    },
-    image:{
-      width: 180,
-      height: 210,
-      justifyContent:"flex-end",
-      // backgroundColor:"#000080",
-      marginLeft:5,
-      marginTop:10
-    },
-    description:{
-      width:170,
-      height:40,
-      marginTop:5,
-      marginLeft:20,
-      textAlign:"center",
-      // backgroundColor:"#00BFFF",
-      //justifyContent:"center",
-      fontSize:40
-      
-    },
-    
-    circle: {
-      width: 45,
-      height: 45,
-      borderRadius: 100 / 2,
-      backgroundColor: 'rgba(30, 100, 200, 0.1)'
-    },
-    circlePad: {
-      width: 45,
-      height: 45,
-      // backgroundColor: 'rgba(30, 100, 200, 0.1)'
-    },
-    datavalue: {
-      width: 45,
-      height: 12,
-      fontFamily: "SUITE-Medium",
-      fontSize: 10,
-      textAlign:"center",
-      marginTop : 3,
-      //backgroundColor: "blue"
-    },
-    dataname: {
-      width: 45,
-      height: 12,
-      fontFamily: "SUITE-Medium",
-      fontSize : 10,
-      textAlign:"center",
-      marginBottom : 3
+    paddingTop : 10,
+    justifyContent: "flex-start",
+    backgroundColor: "2980b9"
+    //height:1800
+  },
+  date:{
+    //flexDirection:"row",
+    paddingTop:10,
+    marginTop: 30,
+    marginLeft: 20,
+    marginBottom: 5,
+    width: 350,
+    height:30,
+    textAlign:"center",
+    alignItems: "center",
+    color: "white",
+    // backgroundColor:"#E6E6FA",
+    //justifyContent:"space-evenly",
+    fontSize: 14
+  },
+  search:{
+    //flexDirection:"row",
+    justifyContent: "flex-start",
+    marginTop: 5,
+    width:SCREEN_WIDTH,
+    height:40,
+    textAlign:"center",
+    alignItems: "center",
+    // backgroundColor:"skyblue",
+    //justifyContent:"space-evenly",
+    fontSize:20
   
-      //backgroundColor: "blue"
-    },
-   
-    
-    degree:{
-      flexDirection:"row",
-      width: 370,
-      height: 100,
-      marginTop: 30,
-      marginLeft:10,
-      textAlign:"center",
-      alignItems: "center",
-      // backgroundColor:"#00BFFF",
-      justifyContent:"space-evenly",
-      fontSize:40
-      
-    },
+  },
+  city:{
+    width: 180,
+    //height:18,
+    //marginLeft:20,
+    height: 170,
+    // backgroundColor:"skyblue",
+    justifyContent:"flex-start",
+    textAlign: "center",
+    alignItems:"center"
+  },
+  cityName:{
+    width: 180,
+    marginTop: 10,
+    marginLeft: 20,
+    fontSize:26,
+    fontWeight:"500"
+  },
+  weather:{
+    width : SCREEN_WIDTH,
+    //height : 1000,
+    justifyContent:"space-between",
+    // backgroundColor:"blue",
+    alignItems: "flex-start",
+  },
+  day:{
+    width:SCREEN_WIDTH,
+    height: 600,
+    flexDirection:"column",
+    //  backgroundColor:"#AFEEEE",
+    //flex:1,
+    //backgroundColor:"teal",
+    alignItems:"flex-start",
+    marginTop:10
+  },
   
+  row:{
+    //backgroundColor:"#4169e1",
+    justifyContent:"center",
+    flexDirection:"row",
+    height: 200,
+    width : 390,
+    marginBottom: 20,
+  },
+  column:{
+    paddingBottom: 5,
+    justifyContent:"flex-start",
+    flexDirection:"column"
+  },
+  rowlable:{
+    flexDirection:"row"
+  },
+  Myloca:{
+    paddingLeft: 10,
+    width : 180,
+    height : 210,
+    marginTop : 20,
+    marinLeft: 10,
+    marginRight: 5,
+    //justifyContent:"flex-start",
+    alignItems: "center",
+    textAlign: "center",
+    // backgroundColor:"skyblue",
+    flexDirection:"column",
+  },
+  temp:{
+    width : 180,
+    height : 80,
+    justifyContent:"flex-start",
+    alignItems: "center",
+    textAlign: "center",
+    // backgroundColor:"skyblue",
+    flexDirection:"column",
+    marginLeft:20,
+    //marginTop:10,
+    fontSize:70
+  },
+  image:{
+    width: 180,
+    height: 210,
+    justifyContent:"flex-end",
+    // backgroundColor:"#000080",
+    marginLeft:5,
+    marginTop:10
+  },
+  description:{
+    width:170,
+    height:40,
+    marginTop:5,
+    marginLeft:20,
+    textAlign:"center",
+    // backgroundColor:"#00BFFF",
+    //justifyContent:"center",
+    fontSize:40
     
-    message:{
-      //flexDirection:"row",
-      marginTop: 10,
-      marginLeft: 20,
-     // width: 350,
-      height:25,
-      textAlign:"center",
-      alignItems: "center",
-      // backgroundColor:"#E6E6FA",
-      //justifyContent:"space-evenly",
-      fontFamily: "SUITE-Medium",
-      fontSize:16
+  },
+  
+  circle: {
+    width: 45,
+    height: 45,
+    borderRadius: 100 / 2,
+    backgroundColor: 'rgba(30, 100, 200, 0.1)'
+  },
+  circlePad: {
+    width: 45,
+    height: 45,
+    // backgroundColor: 'rgba(30, 100, 200, 0.1)'
+  },
+  datavalue: {
+    width: 45,
+    height: 12,
+    fontFamily: "SUITE-Medium",
+    fontSize: 10,
+    textAlign:"center",
+    marginTop : 3,
+    //backgroundColor: "blue"
+  },
+  dataname: {
+    width: 45,
+    height: 12,
+    fontFamily: "SUITE-Medium",
+    fontSize : 10,
+    textAlign:"center",
+    marginBottom : 3
+
+    //backgroundColor: "blue"
+  },
+ 
+  
+  degree:{
+    flexDirection:"row",
+    width: 370,
+    height: 100,
+    marginTop: 20,
+    marginBottom: 10,
+    marginLeft:10,
+    textAlign:"center",
+    alignItems: "center",
+    // backgroundColor:"#00BFFF",
+    justifyContent:"space-evenly",
+    fontSize:40
     
-    },
+  },
+
   
-    
-    miniIcon:{
-      // backgroundColor: "white",
-      width: 14,
-      height: 16,
-      marginTop: 4,
-      alignItems: "center",
-    },
+  message:{
+    //flexDirection:"row",
+    marginTop: 10,
+    marginLeft: 20,
+   // width: 350,
+    height:25,
+    textAlign:"center",
+    alignItems: "center",
+    // backgroundColor:"#E6E6FA",
+    //justifyContent:"space-evenly",
+    fontFamily: "SUITE-Medium",
+    fontSize:16
   
-    card:{
-      marginTop: 12,
-      marginLeft: 20,
-      marginBottom: 15,
-      paddingLeft: 10,
-      paddingTop: 3,
-      width: 350,
-      height: 70,
-      textAlign:"left",
-      alignItems: "center",
-      flexDirection:"row",
-      //justifyContent:"space-evenly",
-      fontSize:16,
-      backgroundColor: 'rgba(0, 100, 150, 0.1)',
-      borderColor: 'rgba(0, 50, 0, 0.2)',
-      borderWidth: 2,
-      borderRadius: 15,
-    },
+  },
+
   
-    ment:{
-      // backgroundColor: "white",
-      fontFamily: "SUITE-Medium",
-      // width: 350,
-      height: 18,
-      margin: 2,
-      textAlign:"left",
-      //justifyContent:"space-evenly",
-      fontSize:16,
-    },
+  miniIcon:{
+    // backgroundColor: "white",
+    width: 14,
+    height: 16,
+    marginTop: 4,
+    alignItems: "center",
+  },
+
+  card:{
+    marginTop: 12,
+    marginLeft: 20,
+    marginBottom: 15,
+    paddingLeft: 10,
+    paddingTop: 3,
+    width: 350,
+    height: 70,
+    textAlign:"left",
+    alignItems: "center",
+    flexDirection:"row",
+    //justifyContent:"space-evenly",
+    fontSize:16,
+    backgroundColor: 'rgba(0, 100, 150, 0.1)',
+    borderColor: 'rgba(0, 50, 0, 0.2)',
+    borderWidth: 2,
+    borderRadius: 15,
+  },
+
+  GPTcard:{
+    marginTop: 12,
+    marginLeft: 20,
+    marginBottom: 15,
+    paddingLeft: 10,
+    paddingTop: 3,
+    width: 350,
+    height: 70,
+    textAlign:"left",
+    alignItems: "center",
+    flexDirection:"row",
+    //justifyContent:"space-evenly",
+    fontSize:16,
+   //backgroundColor: 'rgba(0, 100, 150, 0.1)',
+    borderColor: 'rgba(0, 50, 0, 0.2)',
+    borderTopWidth: 2,
+    borderBottomWidth: 2,
+    //borderRadius: 15,
+  },
+
+  title:{
+    width: 350,
+    height: 20,
+    paddingLeft: 20,
+  },
+
+  ment:{
+    // backgroundColor: "white",
+    fontFamily: "SUITE-Medium",
+    // width: 350,
+    height: 18,
+    margin: 2,
+    textAlign:"left",
+    //justifyContent:"space-evenly",
+    fontSize:16,
+  },
+
+
+  dustPad:{
+    marginTop: 10,
+    marginBottom: 15,
+    backgroundColor:'rgba(0, 50, 0, 0.2)',
+    justifyContent:"center",
+    flexDirection:"row",
+    height: 110,
+    width : 390
+  },
   
+  dustData:{
+    marginTop: 12,
+    marginLeft: 10,
+    paddingTop: 5,
+    width: 190,
+    height:80,
+    flexDirection:"row",
+    textAlign:"left",
+    alignItems: "center",
+    //backgroundColor:"#E6E6FA",
+    justifyContent:"flex-start",
+    fontSize:16
+  },
   
-    dustPad:{
-      marginTop: 10,
-      // backgroundColor:'rgba(0, 50, 0, 0.2)',
-      justifyContent:"center",
-      flexDirection:"row",
-      height: 110,
-      width : 390
-    },
-    
-    dustData:{
-      marginTop: 12,
-      marginLeft: 10,
-      paddingTop: 5,
-      width: 190,
-      height:80,
-      flexDirection:"row",
-      textAlign:"left",
-      alignItems: "center",
-      //backgroundColor:"#E6E6FA",
-      justifyContent:"flex-start",
-      fontSize:16
-    },
-    
-    dustIcon:{
-      marginTop: 15,
-      //marginLeft: 20,
-      width: 110,
-      height:80,
-      alignItems: "center",
-      //backgroundColor:"#E6E6FA",
-      //justifyContent:"space-evenly",
-      fontSize:16
-    },
-   
-    pmGrade:{
-      //flexDirection:"row",
-      marginTop: 5,
-      marginLeft: 5,
-     // width: 350,
-      height:20,
-      textAlign:"center",
-      alignItems: "center",
-       //backgroundColor:"#E6E6FA",
-      //justifyContent:"space-evenly",
-      fontFamily: "SUITE-Medium",
-      fontSize:16
-    
-    },
+  dustIcon:{
+    marginTop: 15,
+    //marginLeft: 20,
+    width: 110,
+    height:80,
+    alignItems: "center",
+    //backgroundColor:"#E6E6FA",
+    //justifyContent:"space-evenly",
+    fontSize:16
+  },
+ 
   
-    pm:{
-      //flexDirection:"row",
-      marginTop: 10,
-      marginLeft: 20,
-     // width: 350,
-      height:20,
-      textAlign:"center",
-      alignItems: "center",
+
+  pmGrade:{
+    //flexDirection:"row",
+    marginTop: 5,
+    marginLeft: 5,
+   // width: 350,
+    height:20,
+    textAlign:"center",
+    alignItems: "center",
      //backgroundColor:"#E6E6FA",
-      //justifyContent:"space-evenly",
-      fontFamily: "SUITE-Medium",
-      color: "#223254",
-      fontSize: 13
-    
-    },
+    //justifyContent:"space-evenly",
+    fontFamily: "SUITE-Medium",
+    fontSize:16
   
-    
+  },
+
+  pm:{
+    //flexDirection:"row",
+    marginTop: 10,
+    marginLeft: 20,
+   // width: 350,
+    height:20,
+    textAlign:"center",
+    alignItems: "center",
+   //backgroundColor:"#E6E6FA",
+    //justifyContent:"space-evenly",
+    Family: "SUITE-Medium",
+    color: "#223254",
+    fontSize: 13
   
-    myplace:{
-      //backgroundColor: "white",
-      width: 300,
-      flexDirection:"row",
-      marginTop: 12,
-      //marginBottom: 5,
-      borderBottomColor: 'rgba(0, 50, 100, 0.1)',
-      borderBottomWidth: 1,
-      paddingBottom: 2,
-      height: 26,
-      textAlign:"left",
-      //alignItems: "center",
-      justifyContent:"flex-start",
-      fontSize:16,
-      // borderColor: 'rgba(0, 50, 0, 0.2)',
-      // borderWidth: 2,
-      // borderRadius: 15,
-    },
-    
-    bookmarkPad:{
-      paddingLeft: 10,
-      paddingBottom: 10,
-      flexDirection:"column",
-      justifyContent:"flex-start",
-      width: 350,
-      //height: 150,
-      marginTop: 20,
-      marginLeft:20,
-      textAlign:"left",
-      //alignItems: "center",
-      backgroundColor:'rgba(051, 153, 204, 0.3)',
-      fontSize:40
-    
-    },
+  },
+
   
-    location:{
-      paddingLeft: 10,
-      flexDirection:"column",
-      width: 330,
-      height: 130,
-      //marginTop: 40,
-      //marginLeft:20,
-      textAlign:"left",
-      //alignItems: "center",
-      backgroundColor:'rgba(051, 153, 204, 0.3)',
-      justifyContent:"space-evenly",
-      fontSize:40
-    },
+
+  myplace:{
+    //backgroundColor: "white",
+    width: 300,
+    flexDirection:"row",
+    marginTop: 12,
+    marginBottom: 10,
+    borderBottomColor: 'rgba(0, 50, 100, 0.1)',
+    borderBottomWidth: 1,
+    paddingBottom: 2,
+    height: 26,
+    textAlign:"left",
+    //alignItems: "center",
+    justifyContent:"flex-start",
+    fontSize:16,
+    // borderColor: 'rgba(0, 50, 0, 0.2)',
+    // borderWidth: 2,
+    // borderRadius: 15,
+  },
   
-    week:{
-      width:SCREEN_WIDTH,
-      flexDirection:"column",
+  bookmarkPad:{
+    paddingLeft: 10,
+    paddingBottom: 10,
+    flexDirection:"column",
+    justifyContent:"flex-start",
+    width: 350,
+    //height: 150,
+    marginTop: 20,
+    marginLeft:20,
+    textAlign:"left",
+    //alignItems: "center",
+    backgroundColor:'rgba(051, 153, 204, 0.3)',
+    fontSize:40
+  
+  },
+
+  location:{
+    paddingLeft: 10,
+    flexDirection:"column",
+    width: 330,
+    height: 60,
+    //marginTop: 40,
+    //marginLeft:20,
+    textAlign:"left",
+    //alignItems: "center",
+    backgroundColor:'rgba(051, 153, 204, 0.3)',
+    justifyContent:"space-evenly",
+    fontSize:40
+  },
+
+  week:{
+    width:SCREEN_WIDTH,
+    flexDirection:"column",
+  
+    height: 700,
+    marginTop: 10,
+  
+    textAlign:"center",
+    alignItems: "flex-start",
+    //backgroundColor:"#00BFFF",
+    justifyContent:"flex-start",
+    fontSize:40,
+    marginBttom: 100
     
-      height: 700,
-      marginTop: 10,
+  },
+  dayOfweek:{
+   
+    flexDirection:"row",
+    width: 100,
+    height: 20,
+    marginTop: 17,
+    marginLeft : 5,
+    textAlign:"left",
+    alignItems: "flex-start",
+   
+    // backgroundColor:"#4169e1",
+    //justifyContent:"space-evenly",
+    fontSize:16
     
-      textAlign:"center",
-      alignItems: "flex-start",
-      //backgroundColor:"#00BFFF",
-      justifyContent:"flex-start",
-      fontSize:40,
-      marginBttom: 100
-      
-    },
-    dayOfweek:{
-     
-      flexDirection:"row",
-      width: 100,
-      height: 20,
-      marginTop: 17,
-      marginLeft : 5,
-      textAlign:"left",
-      alignItems: "flex-start",
-      backgroundColor:"#4169e1",
-      //justifyContent:"space-evenly",
-      fontSize:16
-      
-    },
-    weekly:{
-     
-      flexDirection:"row",
-      width: 360,
-      height: 50,
-      marginLeft : 15,
-      textAlign:"center",
-      alignItems: "flex-start",
-      backgroundColor:"#4169e1",
-      justifyContent:"space-evenly",
-      fontSize:20
-    }
+  },
+  weekly:{
+    backgroundColor:'rgba(121, 153, 204, 0.3)',
+    flexDirection:"row",
+    width: 360,
+    height: 50,
+    marginLeft : 15,
+    paddingLeft : 20,
+    paddingRight : 20,
+    textAlign:"center",
+    alignItems: "flex-start",
+    // backgroundColor:"#4169e1",
+    justifyContent:"space-evenly",
+    fontSize:20
+  },
+
+  table:{
+    flexDirection:"row",
+    width: SCREEN_WIDTH*2,
+    height: 80,
+    marginTop: 5,
+    textAlign:"center",
+    alignItems: "flex-start",
+    borderBottomColor: 'rgba(0, 50, 100, 0.1)',
+    justifyContent:"space-evenly",
+    fontSize:40
+  },
+  chart:{
+    width:SCREEN_WIDTH*2,
+    height: 190,
+    flexDirection:"column",
+    borderBottomColor: 'rgba(100, 100, 150, 0.1)',
+    //flex:1,
+    //backgroundColor:"teal",
+    alignItems:"flex-start",
+    marginTop:3,
+  },
+  time:{
+    //flexDirection:"row",
+    marginTop: 5,
+    width: 40,
+    height: 15,
+    textAlign:"center",
+    alignItems: "center",
+    backgroundColor:'rgba(100, 100, 200, 0.2)',
+    //justifyContent:"space-evenly",
+    fontSize:10
+    
+  },
+  icon:{
+    //flexDirection:"row",
+    marginTop:5,
+    width: 40,
+    height:40,
+    textAlign:"center",
+    alignItems: "center",
+    backgroundColor:'rgba(100, 100, 200, 0.2)',
+    //justifyContent:"space-evenly",
+    fontSize:20
+    
+  },
+  hum:{
+    //flexDirection:"row",
+    marginTop:5,
+    width: 60,
+    height:40,
+    textAlign:"left",
+    alignItems: "center",
+    backgroundColor:"#6495ED",
+    //justifyContent:"space-evenly",
+    fontSize:20
+  },
+  high:{
+    //flexDirection:"row",
+    marginTop:5,
+    width: 40,
+    height: 40,
+    paddingTop: 7,
+    textAlign:"center",
+    alignItems: "center",
+   // backgroundColor:"#20B2AA",
+    fontFamily: "SUITE-Medium",
+    fontSize:16,
+    color: "#945050",
+    textShadowColor: 'rgba(100, 50, 80, 0.5)',
+    textShadowOffset: {width: -1, height: 1},
+    textShadowRadius: 15
+  },
+  low:{
+    //flexDirection:"row",
+    marginTop:5,
+    width: 40,
+    height: 40,
+    paddingTop: 7,
+    textAlign:"center",
+    alignItems: "center",
+   // backgroundColor:"#20B2AA",
+    fontFamily: "SUITE-Medium",
+    fontSize:16,
+    color: "#3C5087",
+    textShadowColor: 'rgba(50, 80, 100, 0.5)',
+    textShadowOffset: {width: -1, height: 1},
+    textShadowRadius: 15
+  },
+
+  }
+  ) 
   
-    // table:{
-    //   flexDirection:"row",
-    //   width: 900,
-    //   height: 80,
-    //   marginTop: 5,
-    //   textAlign:"center",
-    //   alignItems: "flex-start",
-    //   backgroundColor:"#00BFFF",
-    //   justifyContent:"space-evenly",
-    //   fontSize:40
-    // },
-    // chart:{
-    //   width:SCREEN_WIDTH*2,
-    //   height: 175,
-    //   flexDirection:"column",
-    //   backgroundColor:"#00BFFF",
-    //   //flex:1,
-    //   //backgroundColor:"teal",
-    //   alignItems:"flex-start",
-    //   //marginTop:10
-    // },
-    // time:{
-    //   //flexDirection:"row",
-    //   marginTop: 15,
-    //   width: 40,
-    //   height:18,
-    //   textAlign:"center",
-    //   alignItems: "center",
-    //   backgroundColor:"#E6E6FA",
-    //   //justifyContent:"space-evenly",
-    //   fontSize:10
-      
-    // },
-    // icon:{
-    //   //flexDirection:"row",
-    //   marginTop:5,
-    //   width: 40,
-    //   height:40,
-    //   textAlign:"center",
-    //   alignItems: "center",
-    //   backgroundColor:"#E6E6FA",
-    //   //justifyContent:"space-evenly",
-    //   fontSize:20
-      
-    // },
-    // hum:{
-    //   //flexDirection:"row",
-    //   marginTop:5,
-    //   width: 60,
-    //   height:40,
-    //   textAlign:"left",
-    //   alignItems: "center",
-    //   backgroundColor:"#6495ED",
-    //   //justifyContent:"space-evenly",
-    //   fontSize:20
-    // },
-    // high:{
-    //   //flexDirection:"row",
-    //   marginTop:5,
-    //   width: 40,
-    //   height:40,
-    //   textAlign:"center",
-    //   alignItems: "center",
-    //   backgroundColor:"#20B2AA",
-    //   //justifyContent:"space-evenly",
-    //   fontSize:20
-    // },
-    // low:{
-    //   //flexDirection:"row",
-    //   marginTop:5,
-    //   width: 40,
-    //   height:40,
-    //   textAlign:"center",
-    //   alignItems: "center",
-    //   backgroundColor:"#66CDAA",
-    //   //justifyContent:"space-evenly",
-    //   fontSize:20,
-    // },
-  
-    }
-    ) 
