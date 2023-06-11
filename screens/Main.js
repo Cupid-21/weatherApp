@@ -4,14 +4,14 @@ import React, {useEffect, useState} from "react";
 import { 
   View, 
   Text, Dimensions, 
+
   StyleSheet, ScrollView, TextInput, Button, Image, Share, ImageBackground } from 'react-native';
+
 import {
   LineChart,
 } from "react-native-chart-kit";
 
 import * as SQLite from 'expo-sqlite';
-
-
 
 
 // import axios from 'axios';
@@ -20,11 +20,6 @@ import { useNavigation } from '@react-navigation/native';
 import {LinearGradient} from 'expo-linear-gradient';
 import useCachedResources from "./useCachedResources";
 //npx expo install expo-linear-gradient
-
-
-
-
-
 
 // import * as SQLite from 'expo-sqlite';
 // import * as FileSystem from 'expo-file-system';
@@ -447,7 +442,9 @@ export function commentWeather(weatherDict,apiType){
   }
   return commentDict; 
 }
+
 export function getDayofweek(){
+
   var d = new Date();
   var weekday = new Array(7);
   weekday[0] = "일요일";
@@ -472,6 +469,7 @@ export function getDayofweek(){
   return weekly;
 }
 
+
 const toDay = new Date();
 
 const month = (toDay.getMonth() + 1).toString();
@@ -480,7 +478,6 @@ const d = toDay.getDay();
 const week = getDayofweek();
 const dayYo = week[d];
 console.log("오늘", dayYo);
-  
 
 
 // 초단기예보, 단기예보 api
@@ -665,8 +662,10 @@ export default function Main() {
   const [dustbackLiner, setDustbackLiner] = useState();
 
   // 미세먼지 이미지
+
   const dustcloud = require('./src/assets/image/weather-icon/dust.png');
   const cleancloud = require('./src/assets/image/weather-icon/clean.png');
+
   const [cloudImg, setCloudImg]=useState();
 
   const [city, setCity]=useState("Loading...");
@@ -699,9 +698,11 @@ export default function Main() {
   const [searchLongitude, setLongitude] = useState('');
 
   // 즐겨찾기 기능
+
   const [favorite1, setFavorite1] = useState("");
   const [favorite2, setFavorite2] = useState("");
   const [favorite3, setFavorite3] = useState("");
+
 
 
   // 주간 최저/최고 기온
@@ -718,7 +719,9 @@ export default function Main() {
   const [min6, setMin6] = useState();
   const [max6, setMax6] = useState();
   
+
   // const [toDay, setToDay] = useState(); 
+
   const [dayofweek3, setDayofweek3] = useState(); 
   const [dayofweek4, setDayofweek4] = useState(); 
   const [dayofweek5, setDayofweek5] = useState(); 
@@ -746,6 +749,7 @@ export default function Main() {
   async function searchLocation() {
     const result = locationJson.find(item => item['3단계'] === locationName);
     const loc=locationName;
+
     if (result) {
       const { '위도(초/100)': lat, '경도(초/100)': lon } = result;
       const { '1단계' : sido } = result;
@@ -888,6 +892,7 @@ export default function Main() {
    async function searchLocationbk(loc) {
 
     const result = locationJson.find(item => item['3단계'] === loc);
+
     if (result) {
       const { '위도(초/100)': lat, '경도(초/100)': lon } = result;
       const { '1단계' : sido } = result;
@@ -895,6 +900,7 @@ export default function Main() {
       setLongitude(lon);
       sidoForPm=modifyRegion(sido);
       
+
       // const db = SQLite.openDatabase('weather.db');
 
 
@@ -903,9 +909,11 @@ export default function Main() {
           'SELECT * FROM bookmarkloc WHERE loc = ?',
           [locationName],
           (_, { rows }) => {
+
             if (rows.length === 0) {
               tx.executeSql(
                 'INSERT INTO bookmarkloc (loc) VALUES (?)',
+
                 [locationName],
                 (_, { rowsAffected }) => {
                   if (rowsAffected > 0) {
@@ -914,9 +922,10 @@ export default function Main() {
                     console.log('Failed to insert location.');
                   }
       
-                  // 두 번째 쿼리 실행
+
+                  // 두 번째 쿼리 실행. 순서 보장하기 위해 콜백 함수 내에서 처리
                   tx.executeSql(
-                    'SELECT * FROM bookmarkloc ORDER BY id DESC LIMIT 3',
+                    'SELECT * FROM bookmarkloc ORDER BY id DESC LIMIT 3', // 최근에 추가된 값 3개 내림차순으로 가져와서 즐겨찾기 목록에 추가
                     [],
                     (_, { rows }) => {
                       if (rows.length >= 1) {
@@ -934,6 +943,7 @@ export default function Main() {
               );
             } else {
               console.log('Location already exists.');
+
       
               // 두 번째 쿼리 실행
               tx.executeSql(
@@ -964,7 +974,7 @@ export default function Main() {
           }
         );
       });
-      
+
       
 
       // 검색 지역 초단기 api 요청
@@ -1132,7 +1142,9 @@ export default function Main() {
 
     const weekly=getDayofweek()
     console.log("!!!!!!!!!!!!!!!!!",weekly);
+
     // setToDay(weekly[0]);
+
     setDayofweek3(weekly[3]);
     setDayofweek4(weekly[4]);
     setDayofweek5(weekly[5]);
@@ -1179,7 +1191,9 @@ export default function Main() {
           strokeWidth: 2 // 첫 번째 데이터 세트의 선 두께
         }
       ],
+
       //legend: ["시간대별 기온"] // optional
+
     };
 
     const dataForWind = {
@@ -1235,7 +1249,10 @@ export default function Main() {
 
    const getAdvice = async (content,type) => {
     //gpt api_key
-    const api_key = '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';
+
+    // const api_key = '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';
+    const api_key = '';
+
     const messages = [
       { role: 'system', content: 'You are a helpful assistant.' },
       { role: 'user', content: content },
@@ -1286,7 +1303,6 @@ export default function Main() {
     getWeather();
     compareWeather();
 
-    
     
     if (TEMP !== undefined && pmGrade10 !== undefined) {
       // 현재 날씨 조언 기능
@@ -1355,13 +1371,71 @@ export default function Main() {
 
 
 
+  // rainfall과 TEMP의 값이 변경되었을 때에만 setDeerImg() 함수 호출되도록 함
+  // 기후별 배경색 변경
+  useEffect(() => {
+    if (rainfall !== "강수없음") {
+      setDeerImg(rain_deer);
+      setBackLiner('#4c5c7c');
+    } else if (parseInt(wind) > 7) {
+      setDeerImg(wind_deer);
+      setBackLiner('#26a69a');
+    } else {
+      if (parseInt(TEMP) > 19) {
+        setDeerImg(hot_deer);
+        setBackLiner('#2980B9'); // #2980B9
+      } else if (parseInt(TEMP) > 9){
+        setDeerImg(normal_deer);
+        setBackLiner('#f97a92');
+      } else {
+        setDeerImg(cold_deer);
+        setBackLiner('#ffcdd2');
+      }
+    }
+  }, [rainfall, TEMP, wind]);
+
+  useEffect(() => {
+    if (pmGrade10 == "좋음" || pmGrade10 == "보통"){
+      setCloudImg(cleancloud);
+      setDustbackLiner('#82b1ff');
+    }
+    else{
+      setCloudImg(dustcloud);
+      setDustbackLiner('#ffd180');
+    }
+    
+  }, [pmGrade10]);
+
+  useEffect(() => {
+    const db = SQLite.openDatabase('weather.db');
+    db.transaction(tx => {
+      tx.executeSql(
+        'SELECT * FROM bookmarkloc ORDER BY id DESC LIMIT 3',
+        [],
+        (_, { rows }) => {
+          if (rows.length >= 1) {
+            setFavorite1(rows.item(0).loc);
+          }
+          if (rows.length >= 2) {
+            setFavorite2(rows.item(1).loc);
+          }
+          if (rows.length >= 3) {
+            setFavorite3(rows.item(2).loc);
+          }
+        }
+      );
+    })
+  }, []);
+
   return (
    
+]
     // <LinearGradient colors={['#2980B9', '#6DD5FA',]} start={[0.1, 0.2]} style={styles.container}>
     
     <LinearGradient colors={[backLiner, '#6DD5FA',]} start={[0.1, 0.2]} style={styles.container}>
     
     <StatusBar style="light"></StatusBar>
+]
 
 
 
@@ -1376,6 +1450,7 @@ export default function Main() {
       style={{ height: 25, width: 250, borderColor: '#455A64',borderRadius: 10, borderWidth: 1, paddingLeft: 5, marginBottom: 20, backgroundColor:'rgba(30, 100, 200, 0.1)', fontSize: 14,}}
       placeholder="지역명을 입력하세요"
 
+
       value={locationName}
       onChangeText={text => setLocationName(text)}
     />
@@ -1383,6 +1458,7 @@ export default function Main() {
     <Button title="검색" onPress={searchLocation} />
     </View>
    
+
 {/* <FilterProd ucts /> */}
 </View>  
 
@@ -1403,7 +1479,7 @@ export default function Main() {
         <Text style={styles.cityName}>{city} {subregion} {district}</Text>
         <Text style={styles.temp}>{TEMP}</Text>
           <Text style={styles.description}>{SKY}</Text>
-         
+
           </View>
  
      {/* 캐릭터 이미지 */}
@@ -1416,6 +1492,7 @@ export default function Main() {
               resizeMode={"contain"}
             />
             )}
+
           </View>
           
           </View>
@@ -1509,9 +1586,9 @@ export default function Main() {
         </View>
         </View>
         </>
-      
 
 
+        
       
       {/*  미세 먼지  */}
       <LinearGradient colors={[dustbackLiner, '#6DD5FA',]} start={[0.1, 0.2]} style={styles.dustPad}>
@@ -1617,24 +1694,23 @@ export default function Main() {
       resizeMode={"contain"}
         />
          </View>
+
          </View>
 
          <View style={styles.location}>
-         
          <Button
-            title={favorite1}
+            title="즐겨찾기"
             onPress={() => {
               setLocationName(favorite1)
               searchLocationbk(favorite1);
             }}
-            // style={styles.favo}
           ></Button>
-         {/* <Text style={styles.ment}> {favorite1} </Text>  */}
+         <Text style={styles.ment}> {favorite1} </Text> 
          </View>
 
          <View style={styles.location}>
          <Button
-            title={favorite2}
+            title="즐겨찾기"
             onPress={() => {
               setLocationName(favorite2)
               searchLocationbk(favorite2);
@@ -1645,7 +1721,7 @@ export default function Main() {
 
          <View style={styles.location}>
          <Button
-            title={favorite3}
+            title="즐겨찾기"
             onPress={() => {
               setLocationName(favorite3)
               searchLocationbk(favorite3);
@@ -1662,7 +1738,6 @@ export default function Main() {
         <Text style={styles.dayOfweek}>
             오늘
           </Text>
-   
         <Text style={styles.high}>{lowerTEMP}</Text>
         <Text style={styles.low}>{lowerTEMP}</Text>
        </View>
@@ -1671,7 +1746,6 @@ export default function Main() {
         <Text style={styles.dayOfweek}>
             내일
           </Text>
-       
         <Text style={styles.high}>{tomorrowMax}</Text>
         <Text style={styles.low}>{tomorrowMin}</Text>
        </View>
@@ -1680,7 +1754,6 @@ export default function Main() {
         <Text style={styles.dayOfweek}>
             모레
           </Text>
-   
         <Text style={styles.high}>{afterTomorrowMax}</Text>
         <Text style={styles.low}>{afterTomorrowMin}</Text>
        </View>
@@ -1689,7 +1762,6 @@ export default function Main() {
         <Text style={styles.dayOfweek}>
           {dayofweek3}
           </Text>
-    
         <Text style={styles.high}>{min3}.0</Text>
         <Text style={styles.low}>{max3}.0</Text>
        </View>
@@ -1698,7 +1770,6 @@ export default function Main() {
         <Text style={styles.dayOfweek}>
           {dayofweek4}
           </Text>
-  
         <Text style={styles.high}>{min4}.0</Text>
         <Text style={styles.low}>{max4}.0</Text>
        </View>
@@ -1707,7 +1778,6 @@ export default function Main() {
         <Text style={styles.dayOfweek}>
           {dayofweek5}
           </Text>
-    
         <Text style={styles.high}>{min5}.0</Text>
         <Text style={styles.low}>{max5}.0</Text>
        </View>
@@ -1716,7 +1786,6 @@ export default function Main() {
         <Text style={styles.dayOfweek}>
           {dayofweek6}  
           </Text>
-       
         <Text style={styles.high}>{min6}.0</Text>
         <Text style={styles.low}>{max6}.0</Text>
        </View>
@@ -1738,7 +1807,7 @@ export default function Main() {
         )}
             
         </View>
-
+        
         <View style={styles.day}>
         {isLoading ? (
         <Text>Loading...</Text> // 로딩 상태 표시
@@ -1786,8 +1855,9 @@ export default function Main() {
               />)} 
               </>
           )} */}
-          
+       
         {/* </View> */}
+
 
         </ScrollView>
         </View>
@@ -1929,41 +1999,40 @@ export default function Main() {
     // backgroundColor:"#00BFFF",
     //justifyContent:"center",
     fontSize:40
-    
-  },
-  
-  circle: {
-    width: 45,
-    height: 45,
-    borderRadius: 100 / 2,
-    backgroundColor: 'rgba(30, 100, 200, 0.1)'
-  },
-  circlePad: {
-    width: 45,
-    height: 45,
-    // backgroundColor: 'rgba(30, 100, 200, 0.1)'
-  },
-  datavalue: {
-    width: 45,
-    height: 12,
-    fontFamily: "SUITE-Medium",
-    fontSize: 10,
-    textAlign:"center",
-    marginTop : 3,
-    //backgroundColor: "blue"
-  },
-  dataname: {
-    width: 45,
-    height: 12,
-    fontFamily: "SUITE-Medium",
-    fontSize : 10,
-    textAlign:"center",
-    marginBottom : 3
 
-    //backgroundColor: "blue"
-  },
- 
+     
+    
+    degree:{
+      flexDirection:"row",
+      width: 370,
+      height: 100,
+      marginTop: 30,
+      marginLeft:10,
+      textAlign:"center",
+      alignItems: "center",
+      // backgroundColor:"#00BFFF",
+      justifyContent:"space-evenly",
+      fontSize:40
+      
+    },
   
+    
+    message:{
+      //flexDirection:"row",
+      marginTop: 10,
+      marginLeft: 20,
+     // width: 350,
+      height:25,
+      textAlign:"center",
+      alignItems: "center",
+      // backgroundColor:"#E6E6FA",
+      //justifyContent:"space-evenly",
+      fontFamily: "SUITE-Medium",
+      fontSize:16
+    
+    },
+  
+
   degree:{
     flexDirection:"row",
     width: 370,
@@ -1976,9 +2045,15 @@ export default function Main() {
     // backgroundColor:"#00BFFF",
     justifyContent:"space-evenly",
     fontSize:40
-    
-  },
 
+    
+    miniIcon:{
+      // backgroundColor: "white",
+      width: 14,
+      height: 16,
+      marginTop: 4,
+      alignItems: "center",
+    },
   
   miniIcon:{
     // backgroundColor: "white",
@@ -2089,20 +2164,56 @@ export default function Main() {
     height: 110,
     width : 390
   },
+
   
-  dustData:{
-    marginTop: 12,
-    marginLeft: 10,
-    paddingTop: 5,
-    width: 190,
-    height:80,
-    flexDirection:"row",
-    textAlign:"left",
-    alignItems: "center",
-    //backgroundColor:"#E6E6FA",
-    justifyContent:"flex-start",
-    fontSize:16
-  },
+    dustPad:{
+      marginTop: 10,
+      // backgroundColor:'rgba(0, 50, 0, 0.2)',
+      justifyContent:"center",
+      flexDirection:"row",
+      height: 110,
+      width : 390
+    },
+    
+    dustData:{
+      marginTop: 12,
+      marginLeft: 10,
+      paddingTop: 5,
+      width: 190,
+      height:80,
+      flexDirection:"row",
+      textAlign:"left",
+      alignItems: "center",
+      //backgroundColor:"#E6E6FA",
+      justifyContent:"flex-start",
+      fontSize:16
+    },
+    
+    dustIcon:{
+      marginTop: 15,
+      //marginLeft: 20,
+      width: 110,
+      height:80,
+      alignItems: "center",
+      //backgroundColor:"#E6E6FA",
+      //justifyContent:"space-evenly",
+      fontSize:16
+    },
+   
+    pmGrade:{
+      //flexDirection:"row",
+      marginTop: 5,
+      marginLeft: 5,
+     // width: 350,
+      height:20,
+      textAlign:"center",
+      alignItems: "center",
+       //backgroundColor:"#E6E6FA",
+      //justifyContent:"space-evenly",
+      fontFamily: "SUITE-Medium",
+      fontSize:16
+    
+    },
   
   dustIcon:{
     marginTop: 15,
@@ -2202,17 +2313,30 @@ export default function Main() {
   week:{
     width:SCREEN_WIDTH,
     flexDirection:"column",
+
   
-    height: 700,
-    marginTop: 10,
-  
-    textAlign:"center",
-    alignItems: "flex-start",
-    //backgroundColor:"#00BFFF",
-    justifyContent:"flex-start",
-    fontSize:40,
-    marginBttom: 100
     
+  
+    myplace:{
+      //backgroundColor: "white",
+      width: 300,
+      flexDirection:"row",
+      marginTop: 12,
+      //marginBottom: 5,
+      borderBottomColor: 'rgba(0, 50, 100, 0.1)',
+      borderBottomWidth: 1,
+      paddingBottom: 2,
+      height: 26,
+      textAlign:"left",
+      //alignItems: "center",
+      justifyContent:"flex-start",
+      fontSize:16,
+      // borderColor: 'rgba(0, 50, 0, 0.2)',
+      // borderWidth: 2,
+      // borderRadius: 15,
+    },
+    
+
   },
   dayOfweek:{
    
@@ -2338,3 +2462,4 @@ export default function Main() {
   }
   ) 
   
+
