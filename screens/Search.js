@@ -19,10 +19,8 @@ import * as SQLite from 'expo-sqlite';
 
 
 
-
 const {width:SCREEN_WIDTH} = Dimensions.get("window");
 const {width:screenWidth} = Dimensions.get("window");
-
 
 
 
@@ -49,7 +47,6 @@ console.log("오늘", dayYo);
   
 
 const Search = ({ navigation, route }) => {
-
   // deer 이미지
   const hot_deer = require('./src/assets/image/Deer.png');
   const cold_deer = require('./src/assets/image/cold_deer.png');
@@ -315,7 +312,6 @@ const Search = ({ navigation, route }) => {
 
     const bookmarkLocation = async () => {
       const db = SQLite.openDatabase('weather.db');
-
     
       db.transaction(tx => {
         tx.executeSql(
@@ -383,7 +379,6 @@ const Search = ({ navigation, route }) => {
       }
     }, [rainfall, TEMP, wind]);
 
-
     useEffect(() => {
       if (pmGrade10 == "좋음" || pmGrade10 == "보통"){
         setCloudImg(cleancloud);
@@ -398,8 +393,7 @@ const Search = ({ navigation, route }) => {
 
 
   
-  
-  
+
   
 
     return (
@@ -439,7 +433,6 @@ const Search = ({ navigation, route }) => {
      {/* 캐릭터 이미지 */}
 
      <View style={styles.image}>
-
             {isWeatherLoaded && ( // 기온과 강수량이 로딩된 후에 이미지가 렌더링 되도록 변경
             <Image
               style={styles.image}
@@ -511,7 +504,6 @@ const Search = ({ navigation, route }) => {
           </View>
               
         <LinearGradient colors={[dustbackLiner, '#6DD5FA',]} start={[0.1, 0.2]} style={styles.container}>
-
             <View style={styles.dustPad}>
               {isWeatherLoaded && (
                 <Image
@@ -533,7 +525,6 @@ const Search = ({ navigation, route }) => {
               </View>
             </View>
           </LinearGradient>
-
 
 
 <View style={styles.detail}>
@@ -629,12 +620,11 @@ const Search = ({ navigation, route }) => {
             <Text style={styles.currentlable}>                                       ● 현재 위치</Text>
             <Text style={styles.searchlable}>    ● 검색 위치</Text>
             </View>
-
           {isLoading ? (
-          <Text>Loading…</Text> // 로딩 상태 표시
+          <Text>Loading...</Text> // 로딩 상태 표시
           ) : (
           <>
-              {windData && (
+              {rainData && (
               <LineChart
               data={rainData}
               width={380}
@@ -758,7 +748,6 @@ const Search = ({ navigation, route }) => {
 
 
 
-
 const styles = StyleSheet.create({
   container:{
     // paddingTop : 10,
@@ -785,9 +774,7 @@ const styles = StyleSheet.create({
     },
 
     detail:{
-
       height: 350,
-
     },
 
     detailTitle:{ 
@@ -822,11 +809,9 @@ const styles = StyleSheet.create({
       width: 180,
       marginTop: 10,
       marginLeft: 20,
-
       marginBottom: 3,
       fontSize:30,
       textAlign: "center",
-
       fontWeight:"500"
     },
     weather:{
@@ -852,10 +837,8 @@ const styles = StyleSheet.create({
       justifyContent:"center",
       flexDirection:"row",
       height: 200,
-
       width : 390,
       marginBottom: 10,
-
     },
     column:{
       paddingBottom: 5,
@@ -866,7 +849,6 @@ const styles = StyleSheet.create({
       flexDirection:"row"
     },
     Myloca:{
-
       paddingLeft: 20,
       width : 180,
       height : 240,
@@ -878,7 +860,6 @@ const styles = StyleSheet.create({
       alignItems: "center",
       textAlign: "center",
       //backgroundColor:"skyblue",
-
       flexDirection:"column",
     },
     temp:{
@@ -895,9 +876,7 @@ const styles = StyleSheet.create({
     },
     image:{
       width: 180,
-
       height: 240,
-
       justifyContent:"flex-end",
       // backgroundColor:"#000080",
       marginLeft:5,
@@ -952,9 +931,7 @@ const styles = StyleSheet.create({
       flexDirection:"row",
       width: 370,
       height: 100,
-
       marginTop: 15,
-
       marginLeft:10,
       textAlign:"center",
       alignItems: "center",
@@ -968,10 +945,8 @@ const styles = StyleSheet.create({
     chatGPT:{
       flexDirection:"row",
       width: 370,
-
       // height: 100,
       marginTop: 10,
-
       marginLeft:10,
       textAlign:"center",
       alignItems: "center",
@@ -1025,7 +1000,6 @@ const styles = StyleSheet.create({
       borderRadius: 15,
     },
 
-
     GPTcard:{
       marginTop: 5,
       marginLeft: 20,
@@ -1046,7 +1020,6 @@ const styles = StyleSheet.create({
       //borderRadius: 15,
     },
 
-
     ment:{
       // backgroundColor: "white",
       fontFamily: "SUITE-Medium",
@@ -1059,7 +1032,6 @@ const styles = StyleSheet.create({
       fontSize:16,
     },
   
-
     lable:{
       // backgroundColor: "white",
       fontFamily: "SUITE-Medium",
@@ -1106,7 +1078,6 @@ const styles = StyleSheet.create({
   
     dustPad:{
       //marginTop: 10,
-
       backgroundColor:'rgba(0, 50, 0, 0.2)',
       justifyContent:"center",
       flexDirection:"row",
@@ -1170,7 +1141,6 @@ const styles = StyleSheet.create({
     
     },
   
-
     chart:{
       width:SCREEN_WIDTH*2,
       height: 250,
@@ -1181,7 +1151,6 @@ const styles = StyleSheet.create({
       alignItems:"flex-start",
       marginTop:3,
     },
-
   
     myplace:{
       //backgroundColor: "white",
