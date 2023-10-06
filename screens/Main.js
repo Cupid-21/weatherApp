@@ -62,7 +62,7 @@ function modifyRegion(region){
     region=region.substr(0,2);
   }
   else if (region.charAt(region.length - 1)=="도"){
-    console.log(region);
+    // console.log(region);
     switch (region){
       case "충청북도":
         region="충북";
@@ -428,7 +428,7 @@ export function getDayofweek(){
   weekday[5] = "금요일";
   weekday[6] = "토요일";
 
-  today=d.getDay() // 1
+  today=d.getDay() 
   var weekly=[];
 
   for(let i=0 ; i<7 ; i++){
@@ -437,7 +437,6 @@ export function getDayofweek(){
     }
     weekly.push(weekday[today]);
     today+=1;
-    // console.log(weekly);
   }
   return weekly;
 }
@@ -448,8 +447,8 @@ const month = (toDay.getMonth() + 1).toString();
 const day = toDay.getDate().toString().padStart(2, '0');
 const d = toDay.getDay();
 const week = getDayofweek();
-const dayYo = week[d];
-console.log("오늘", dayYo);
+const dayYo = week[0];
+// console.log("오늘", dayYo);
   
 
 
@@ -605,7 +604,7 @@ export async function setPm(pmResponse){
     grade25=extractPm(Math.round(pmGradeSum25 / countGrade25))
     value10=Math.round(pmValueSum10 / countValue10)
     value25=Math.round(pmValueSum25 / countValue25)
-    console.log("pm 성공");
+    // console.log("pm 성공");
     return [grade10, grade25, value10, value25];
     // setPmGrade10(extractPm(Math.round(pmGradeSum10 / countGrade10)));
     // setPmGrade25(extractPm(Math.round(pmGradeSum25 / countGrade25)));
@@ -760,7 +759,7 @@ export default function Main() {
                 }
               );
             } else {
-              console.log('Location already exists.');
+              // console.log('Location already exists.');
               // 검색한 지역이 table에 이미 있을 경우 삭제한 뒤 다시 새롭게 추가
               tx.executeSql(
                 'DELETE FROM bookmarkloc WHERE loc = ?',
@@ -1020,8 +1019,8 @@ export default function Main() {
     setWind(JSON.stringify(commentWeather(ultraSrtWeatherInfo,"ultraSrt").wind).replace(/\"/gi, "")); // 풍속
     
     
-    console.log("**************",typeof(rainfall));
-    console.log("+++++++++",parseInt(TEMP));
+    // console.log("**************",typeof(rainfall));
+    // console.log("+++++++++",parseInt(TEMP));
     // if (rainfall!="강수없음"){
     //   setDeerImg(rain_deer);
     // }
@@ -1041,7 +1040,7 @@ export default function Main() {
 
     // 단기 예보 api url
     const vilageUrl = getCurrnetWeatherUrl(latitude, longitude,"vilage")[1];
-    console.log("단기예보 url",vilageUrl);
+    // console.log("단기예보 url",vilageUrl);
     const vilageResponse = await fetch(vilageUrl);
     const vilageJson = await vilageResponse.json(); // 응답을 JSON 형태로 파싱
     setVilageJson(vilageJson);
@@ -1057,7 +1056,7 @@ export default function Main() {
     
     // 미세먼지 api url
     const pmUrl = getCurrnetPmUrl(region);
-    console.log("###############",pmUrl);
+    // console.log("###############",pmUrl);
     var pmResponse = await fetch(pmUrl);
     pmResponse=await pmResponse.text();
     pmlist=await setPm(pmResponse);
@@ -1084,7 +1083,7 @@ export default function Main() {
 
     // 3일 후~ 9일 후 최저/최고 기온
     const vilageWeekUrl3 = getCurrnetWeatherUrl(latitude, longitude,"vilage")[3];
-    console.log("이거",vilageWeekUrl3);
+    // console.log("이거",vilageWeekUrl3);
     const vilageWeekResponse3 = await fetch(vilageWeekUrl3);
     const vilageWeekJson3 = await vilageWeekResponse3.json(); // 응답을 JSON 형태로 파싱
     weekMinTempList3=extractVilageWeekWeather3(vilageWeekJson3)[0] // 최저기온 리스트
@@ -1101,13 +1100,13 @@ export default function Main() {
     setMax6(weekMaxTempList3[3]);
 
     const weekly=getDayofweek()
-    console.log("!!!!!!!!!!!!!!!!!",weekly);
+    // console.log("!!!!!!!!!!!!!!!!!",weekly);
     // setToDay(weekly[0]);
     setDayofweek3(weekly[3]);
     setDayofweek4(weekly[4]);
     setDayofweek5(weekly[5]);
     setDayofweek6(weekly[6]);
-    console.log(dayofweek3);
+    // console.log(dayofweek3);
 
     
     
@@ -1194,7 +1193,7 @@ export default function Main() {
     setRainData(dataForRain);
     setSensoryData(dataForSensory);
     setIsLoading(false); // 데이터 로딩 완료 상태 설정
-    console.log("비교 그래프 확인")
+    // console.log("비교 그래프 확인")
 
   
   };
@@ -1205,7 +1204,7 @@ export default function Main() {
 
    const getAdvice = async (content,type) => {
     //gpt api_key
-    const api_key = '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';
+    const api_key = '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';
     const messages = [
       { role: 'system', content: 'You are a helpful assistant.' },
       { role: 'user', content: content },
@@ -1234,7 +1233,7 @@ export default function Main() {
         choices.forEach((choice, index) => {
         resultText += `${choice.message.content}\n`;
         });
-        console.log(resultText);
+        // console.log("resultText",resultText);
         switch (type){
           case "current":
             setAdvice(resultText);
@@ -1472,7 +1471,8 @@ export default function Main() {
         <Button 
           title="공유"
           style={{height: 10, fontSize:10,}}
-          onPress={async () => await Share.share({ message: shareTwo,})}>
+          // onPress={async () => await Share.share({ message: shareTwo,})}>
+          onPress={async () => await Share.share({ message: "hello cupid-weather"})}>
         </Button>
           
         </View>

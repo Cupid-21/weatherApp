@@ -42,8 +42,8 @@ const month = (toDay.getMonth() + 1).toString();
 const day = toDay.getDate().toString().padStart(2, '0');
 const d = toDay.getDay();
 const week = getDayofweek();
-const dayYo = week[d];
-console.log("오늘", dayYo);
+const dayYo = week[0];
+// console.log("오늘", dayYo);
   
 
 const Search = ({ navigation, route }) => {
@@ -148,7 +148,7 @@ const Search = ({ navigation, route }) => {
       setGptTemp(currentTmpList);
       const searchTmpList=makeData(searchTmpForTime);
       setGptSrcTemp(searchTmpList);
-      //console.log("검색 지역 기온 : ", searchTmpForTime);
+      // console.log("검색 지역 기온 : ", searchTmpForTime);
   
       // 6,9,12,15,18,21시 풍속
       currentWindForTime=extractVilageWeather(vilageJson)[2]; 
@@ -252,13 +252,13 @@ const Search = ({ navigation, route }) => {
     };
 
     const getAdvice = async (content,type) => {
-      const api_key = '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';
+      const api_key = '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';
       // const keywords = '커피';
       const messages = [
         { role: 'system', content: 'You are a helpful assistant.' },
         { role: 'user', content: content },
       ];
-      console.log({TEMP});
+      // console.log({TEMP});
       const config = {
         method: 'POST',
         headers: {
@@ -283,7 +283,7 @@ const Search = ({ navigation, route }) => {
           choices.forEach((choice, index) => {
             resultText += `${choice.message.content}\n`;
           });
-          console.log(resultText);
+          console.log("resultText", resultText);
 
           switch (type){
             case "Temp":
@@ -330,7 +330,7 @@ const Search = ({ navigation, route }) => {
       console.log("data 확인", gptTemp, gptSrcTemp);
       
       const adviceTypes = [
-        { content: '현재 위치의 시간대별 기온' + gptTemp + '와, 검색지역의 시간대별 기온 ' + gptSrcTemp + '을 비교분석 한 뒤에 재밌는 한마디 부탁해', type: 'Temp' },
+        { content: '현재 위치의 시간대별 기온' + gptTemp + '와, 검색지역의 시간대별 기온 ' + gptSrcTemp + '을 간단하게 비교 해줘. 그리고 재밌는 말투로 3문단 분량 조언 부탁해', type: 'Temp' },
         { content: '현재 위치의 시간대별 풍속' + gptWind + '와, 검색지역의 시간대별 풍속 ' + gptSrcWind + '을 비교분석 한 뒤에 재밌는 한마디 부탁해', type: 'Wind' },
         { content: '현재 위치의 시간대별 강수량' + gptFall + '와, 검색지역의 시간대별 강수량 ' + gptSrcFall + '을 비교분석 한 뒤에 재밌는 한마디 부탁해', type: 'Fall' },
         { content: '현재 위치의 시간대별 체감온도' + gptSensory + '와, 검색지역의 시간대별 체감온도 ' + gptSrcSensory + '을 비교분석 한 뒤에 재밌는 한마디 부탁해', type: 'Sensory' }
@@ -342,10 +342,10 @@ const Search = ({ navigation, route }) => {
         const { content, type } = adviceTypes[currentIndex];
         getAdvice(content, type);
         
-        currentIndex++;
-        if (currentIndex < adviceTypes.length) {
-          setTimeout(callGetAdvice, 10000); // 10초 지연 후 다음 호출
-        }
+        // currentIndex++;
+        // if (currentIndex < adviceTypes.length) {
+        //   setTimeout(callGetAdvice, 10000); // 10초 지연 후 다음 호출
+        // }
       };
       
       callGetAdvice();
