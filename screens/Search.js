@@ -250,15 +250,13 @@ const Search = ({ navigation, route }) => {
   
     
     };
-
     const getAdvice = async (content,type) => {
-      const api_key = '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';
-      // const keywords = '커피';
+
+      const api_key = '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';
       const messages = [
         { role: 'system', content: 'You are a helpful assistant.' },
         { role: 'user', content: content },
       ];
-      // console.log({TEMP});
       const config = {
         method: 'POST',
         headers: {
@@ -274,6 +272,7 @@ const Search = ({ navigation, route }) => {
       };
   
       try {
+
         const response = await fetch('https://api.openai.com/v1/chat/completions', config);
         const data = await response.json();
         const choices = await data.choices;
@@ -307,6 +306,8 @@ const Search = ({ navigation, route }) => {
         
       } catch (error) {
         console.error(error);
+      } finally {
+        // setIsGptLoading(false);
       }
     };
 
@@ -327,13 +328,43 @@ const Search = ({ navigation, route }) => {
       getSearchWeather();
       compareWeather();
       bookmarkLocation();
+      // console.log("data 확인", gptTemp, gptSrcTemp);
+      
+      // const adviceTypes = [
+      //   { content: '현재 위치의 시간대별 기온' + gptTemp + '와, 검색지역의 시간대별 기온 ' + gptSrcTemp + '을 간략하게 비교분석한 뒤에 재밌는 한마디 부탁해', type: 'Temp' },
+      //   { content: '현재 위치의 시간대별 풍속' + gptWind + '와, 검색지역의 시간대별 풍속 ' + gptSrcWind + '을 비교분석 한 뒤에 재밌는 한마디 부탁해', type: 'Wind' },
+      //   { content: '현재 위치의 시간대별 강수량' + gptFall + '와, 검색지역의 시간대별 강수량 ' + gptSrcFall + '을 비교분석 한 뒤에 재밌는 한마디 부탁해', type: 'Fall' },
+      //   { content: '현재 위치의 시간대별 체감온도' + gptSensory + '와, 검색지역의 시간대별 체감온도 ' + gptSrcSensory + '을 비교분석 한 뒤에 재밌는 한마디 부탁해', type: 'Sensory' }
+      // ];
+      
+      // let currentIndex = 0;
+      
+      // const callGetAdvice = () => {
+      //   const { content, type } = adviceTypes[currentIndex];
+      //   getAdvice(content, type);
+        
+      //   // currentIndex++;
+      //   // if (currentIndex < adviceTypes.length) {
+      //   //   setTimeout(callGetAdvice, 10000); // 10초 지연 후 다음 호출
+      //   // }
+      // };
+      
+      // callGetAdvice();
+      
+      // return () => {
+      //   // 정리 함수에서 타이머를 정리
+      //   clearTimeout(callGetAdvice);
+      // };
+    }, []);
+
+    useEffect(() => {
       console.log("data 확인", gptTemp, gptSrcTemp);
       
       const adviceTypes = [
-        { content: '현재 위치의 시간대별 기온' + gptTemp + '와, 검색지역의 시간대별 기온 ' + gptSrcTemp + '을 간단하게 비교 해줘. 그리고 재밌는 말투로 3문단 분량 조언 부탁해', type: 'Temp' },
-        { content: '현재 위치의 시간대별 풍속' + gptWind + '와, 검색지역의 시간대별 풍속 ' + gptSrcWind + '을 비교분석 한 뒤에 재밌는 한마디 부탁해', type: 'Wind' },
-        { content: '현재 위치의 시간대별 강수량' + gptFall + '와, 검색지역의 시간대별 강수량 ' + gptSrcFall + '을 비교분석 한 뒤에 재밌는 한마디 부탁해', type: 'Fall' },
-        { content: '현재 위치의 시간대별 체감온도' + gptSensory + '와, 검색지역의 시간대별 체감온도 ' + gptSrcSensory + '을 비교분석 한 뒤에 재밌는 한마디 부탁해', type: 'Sensory' }
+        { content: '현재 위치의 시간대별 기온' + gptTemp + '와, 검색지역의 시간대별 기온 ' + gptSrcTemp + '을 간략하게 비교분석한 뒤에 재밌는 한마디 부탁해. 단, 기온을 직접적으로 나열하지는 마. 그리고 3문장으로 작성해줘.', type: 'Temp' },
+        // { content: '현재 위치의 시간대별 풍속' + gptWind + '와, 검색지역의 시간대별 풍속 ' + gptSrcWind + '을 비교분석 한 뒤에 재밌는 한마디 부탁해', type: 'Wind' },
+        // { content: '현재 위치의 시간대별 강수량' + gptFall + '와, 검색지역의 시간대별 강수량 ' + gptSrcFall + '을 비교분석 한 뒤에 재밌는 한마디 부탁해', type: 'Fall' },
+        // { content: '현재 위치의 시간대별 체감온도' + gptSensory + '와, 검색지역의 시간대별 체감온도 ' + gptSrcSensory + '을 비교분석 한 뒤에 재밌는 한마디 부탁해', type: 'Sensory' }
       ];
       
       let currentIndex = 0;
@@ -347,14 +378,10 @@ const Search = ({ navigation, route }) => {
         //   setTimeout(callGetAdvice, 10000); // 10초 지연 후 다음 호출
         // }
       };
-      
-      callGetAdvice();
-      
-      return () => {
-        // 정리 함수에서 타이머를 정리
-        clearTimeout(callGetAdvice);
-      };
-    }, []);
+      if (gptTemp){
+        callGetAdvice();
+      }
+    }, [gptTemp, gptSrcTemp])
 
     // rainfall과 TEMP의 값이 변경되었을 때에만 setDeerImg() 함수 호출되도록 함
     // 기후별 배경색 변경
@@ -500,8 +527,8 @@ const Search = ({ navigation, route }) => {
         </View>
         
         <View style={styles.GPTcard}>
-        <Text>{adviceTemp}</Text>
-          </View>
+          <Text>{adviceTemp}</Text>
+        </View>
               
         <LinearGradient colors={[dustbackLiner, '#6DD5FA',]} start={[0.1, 0.2]} style={styles.container}>
             <View style={styles.dustPad}>

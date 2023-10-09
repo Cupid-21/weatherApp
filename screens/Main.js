@@ -1204,7 +1204,7 @@ export default function Main() {
 
    const getAdvice = async (content,type) => {
     //gpt api_key
-    const api_key = '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';
+    const api_key = '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';
     const messages = [
       { role: 'system', content: 'You are a helpful assistant.' },
       { role: 'user', content: content },
@@ -1259,7 +1259,7 @@ export default function Main() {
     
     if (TEMP !== undefined && pmGrade10 !== undefined) {
       // 현재 날씨 조언 기능
-      getAdvice('기온' + TEMP + '도, 미세먼지 ' + pmGrade10 + '인 날씨에 대한 재밌는 한마디 부탁해', "current");
+      getAdvice('기온' + TEMP + '도, 미세먼지 ' + pmGrade10 + '인 날씨에 대한 재치있는 한마디 부탁해', "current");
       // 공유 메시지 질문을 gpt에게 넘기기
       getAdvice('기온' + TEMP + '도, 미세먼지 ' + pmGrade10 + '인 날씨에 대한 메시지를 소중한 사람에게 보낼 거야. 메시지는 *을 사용해서 감싸줘.', "shareTwo");
     }
