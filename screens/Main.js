@@ -35,7 +35,7 @@ const {width:SCREEN_WIDTH} = Dimensions.get("window");
 // console.log(SCREEN_WIDTH);
 
 // api key
-const serviceKey = 'DHAcdCIG92vecEcQDukq%2B%2Fn8eWJtPZ9jKZ3isc%2FWrsnaFK1ZMGLQraTGzmMhDIQLj%2FZCUSkvmj1BgKChWFkbjw%3D%3D';
+const serviceKey = '6Up90v1KO3OG9q2yfd%2B1%2FPEkyDkBBGONR5DVemsFasXwOQq%2FzMcz1d3yX5FNAqAjX7JEelpffkB5MK%2Fj7uFf7A%3D%3D';
 const locationJson = require('../data.json');
 
 
@@ -177,6 +177,7 @@ function parseXml(xml) {
 // 초단기예보 api
 function extractUltraSrtWeather(json){
   const items = json.response.body.items.item;
+  // console.log("items check",items);
   const currentTime=items[0]["fcstTime"]; // 현재 시간(hour)
   // console.log(currentTime);
   let weatherInfo = {}; 
@@ -204,6 +205,7 @@ function extractUltraSrtWeather(json){
       }
     }
   });
+  console.log(weatherInfo);
   return weatherInfo;
 };
 
@@ -479,7 +481,7 @@ function getCurrnetWeatherUrl(latitude, longitude, apiType){
   day=modifiedTime[1];
 
   var base_date = `${year}${month}${day}`;
-  
+  base_date = `20231031`
   const base_time = `${hours}${minutes}`;
 
   var rs = dfs_xy_conv("toXY",latitude.toString(),longitude.toString());
@@ -512,23 +514,6 @@ export function sensoryTemp(temp,humidity){
 }
 
 
-
-// var data = {
-//   labels: ["6시", "9시", "12시", "15시", "18시", "21시"],
-//   datasets : [
-//     {
-//       data: [10, 10, 10, 10, 10, 10],
-//       color: (opacity = 1) => `rgba(255, 0, 0, ${opacity})`, // 첫 번째 데이터 세트의 색상
-//       strokeWidth: 2 // 첫 번째 데이터 세트의 선 두께
-//     },
-//     {
-//       data: [10, 35, 18, 70, 89, 33],
-//       color: (opacity = 1) => `rgba(0, 0, 255, ${opacity})`, // 두 번째 데이터 세트의 색상
-//       strokeWidth: 2 // 두 번째 데이터 세트의 선 두께
-//     }
-//   ],
-//   legend: ["시간대별 기온 비교"] // optional
-// };
 
 export function makeData(currentTmpForTime){
   const values = [];
@@ -1005,6 +990,7 @@ export default function Main() {
     // console.log("초단기예보api url",ultraSrtUrl);
     
     const ultraSrtResponse = await fetch(ultraSrtUrl);
+    // console.log("ultra",ultraSrtResponse);
     const ultraSrtjson = await ultraSrtResponse.json(); // 응답을 JSON 형태로 파싱
     // console.log("checkkkkkkkk :", typeof(ultraSrtjson));
     ultraSrtWeatherInfo= extractUltraSrtWeather(ultraSrtjson);
@@ -1040,7 +1026,7 @@ export default function Main() {
 
     // 단기 예보 api url
     const vilageUrl = getCurrnetWeatherUrl(latitude, longitude,"vilage")[1];
-    // console.log("단기예보 url",vilageUrl);
+    console.log("단기예보 url",vilageUrl);
     const vilageResponse = await fetch(vilageUrl);
     const vilageJson = await vilageResponse.json(); // 응답을 JSON 형태로 파싱
     setVilageJson(vilageJson);
@@ -1204,7 +1190,7 @@ export default function Main() {
 
    const getAdvice = async (content,type) => {
     //gpt api_key
-    const api_key = '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';
+    const api_key = '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';
     const messages = [
       { role: 'system', content: 'You are a helpful assistant.' },
       { role: 'user', content: content },
@@ -1349,7 +1335,8 @@ export default function Main() {
       onChangeText={text => setLocationName(text)}
     />
     
-    <Button title="검색" onPress={searchLocation} />
+    <Button
+       title="검색" onPress={searchLocation} />
     </View>
    
 {/* <FilterProd ucts /> */}
@@ -1471,8 +1458,8 @@ export default function Main() {
         <Button 
           title="공유"
           style={{height: 10, fontSize:10,}}
-          // onPress={async () => await Share.share({ message: shareTwo,})}>
-          onPress={async () => await Share.share({ message: "hello cupid-weather"})}>
+          onPress={async () => await Share.share({ message: shareTwo})}>
+          {/* onPress={async () => await Share.share({ message: "hello cupid-weather"})}> */}
         </Button>
           
         </View>
@@ -2154,6 +2141,7 @@ export default function Main() {
     fontSize:40
   
   },
+
 
   location:{
     paddingLeft: 10,
