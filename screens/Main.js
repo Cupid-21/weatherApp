@@ -481,7 +481,6 @@ function getCurrnetWeatherUrl(latitude, longitude, apiType){
   day=modifiedTime[1];
 
   var base_date = `${year}${month}${day}`;
-  base_date = `20231031`
   const base_time = `${hours}${minutes}`;
 
   var rs = dfs_xy_conv("toXY",latitude.toString(),longitude.toString());
