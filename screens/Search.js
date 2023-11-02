@@ -252,7 +252,7 @@ const Search = ({ navigation, route }) => {
     };
     const getAdvice = async (content,type) => {
 
-      const api_key = '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';
+      const api_key = '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';
       const messages = [
         { role: 'system', content: 'You are a helpful assistant.' },
         { role: 'user', content: content },

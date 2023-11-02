@@ -4,12 +4,14 @@ import React, {useEffect, useState} from "react";
 import { 
   View, 
   Text, Dimensions, 
-  StyleSheet, ScrollView, TextInput, Button, Image, Share, ImageBackground } from 'react-native';
+  StyleSheet, ScrollView, TextInput, Button, Image, Share, ImageBackground, FlatList, TouchableOpacity, Modal } from 'react-native';
 import {
   LineChart,
 } from "react-native-chart-kit";
 
 import * as SQLite from 'expo-sqlite';
+
+import data from '../data.json';
 
 
 
@@ -651,6 +653,12 @@ export default function Main() {
   const [searchLatitude, setLatitude] = useState('');
   const [searchLongitude, setLongitude] = useState('');
 
+  // 검색 가능 목록 제공을 위한
+  const [searchText, setSearchText] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [showResults, setShowResults] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+
   // 즐겨찾기 기능
   const [favorite1, setFavorite1] = useState("");
   const [favorite2, setFavorite2] = useState("");
@@ -835,6 +843,24 @@ export default function Main() {
       setLatitude('');
       setLongitude('');
     }
+  };
+
+  const handleSearchClick = () => {
+    const filteredData = data.filter((item) => item['3단계'] !== '').map((item) => item['3단계']);
+    setSearchResults(filteredData);
+    // setShowResults(true);
+    setShowModal(true);
+  };
+
+  const handleLocationSelect = (location) => {
+    setLocationName(location);
+    // setShowResults(false);
+    setShowModal(false);
+  };
+
+  const handleBlur = () => {
+    // setShowResults(false);
+    setShowModal(false);
   };
 
    // 검색 기능 for 즐겨찾기
@@ -1189,7 +1215,7 @@ export default function Main() {
 
    const getAdvice = async (content,type) => {
     //gpt api_key
-    const api_key = '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';
+    const api_key = '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';
     const messages = [
       { role: 'system', content: 'You are a helpful assistant.' },
       { role: 'user', content: content },
@@ -1306,6 +1332,10 @@ export default function Main() {
       );
     })
   }, []);
+  const test = () => {
+    navigation.navigate('Autocomplete');
+    console.log("이동")
+  }
 
 
 
@@ -1332,7 +1362,41 @@ export default function Main() {
 
       value={locationName}
       onChangeText={text => setLocationName(text)}
+      onFocus={handleSearchClick}
+      onBlur={handleBlur}
     />
+    {/* {showResults && (
+        <FlatList
+          data={searchResults}
+          renderItem={({ item }) => (
+            <TouchableOpacity onPress={() => handleLocationSelect(item)}>
+              <Text>{item}</Text>
+            </TouchableOpacity>
+          )}
+          keyExtractor={(item, index) => index.toString()}
+        />
+      )} */}
+      <Modal
+        visible={showModal}
+        animationType="slide"
+        transparent={true}
+        onBlur={handleBlur}
+      >
+        <View style={styles.modalView}>
+          <FlatList
+            data={searchResults}
+            renderItem={({ item }) => (
+              <TouchableOpacity onPress={() => handleLocationSelect(item)}>
+                <Text style={styles.modalText}>{item}</Text>
+              </TouchableOpacity>
+            )}
+            keyExtractor={(item, index) => index.toString()}
+          />
+          <TouchableOpacity style={styles.closeButton} onPress={() => setShowModal(false)}>
+        <Text style={styles.closeButtonText}>닫기</Text>
+      </TouchableOpacity>
+        </View>
+      </Modal>
     
     <Button
        title="검색" onPress={searchLocation} />
@@ -1756,6 +1820,40 @@ export default function Main() {
   
   
   const styles = StyleSheet.create({
+    modalView: {
+      margin: 60,
+      marginTop: 150,
+      marginBottom: 150,
+      backgroundColor: 'rgba(255, 255, 255, 0.7)',
+      borderRadius: 20,
+      padding: 35,
+      alignItems: 'center',
+      shadowColor: '#000',
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
+      shadowOpacity: 0.25,
+      shadowRadius: 4,
+      elevation: 5,
+    },
+    modalText: {
+      marginBottom: 20,
+      textAlign: 'center',
+      fontSize: 16,
+    },
+    closeButton: {
+      marginTop: 20,
+      padding: 10,
+      backgroundColor: 'rgb(248, 117, 170)',
+      borderRadius: 5,
+    },
+    closeButtonText: {
+      color: 'white',
+      fontWeight: 'bold',
+      textAlign: 'center',
+    },
+
     container:{
     paddingTop : 10,
     justifyContent: "flex-start",
