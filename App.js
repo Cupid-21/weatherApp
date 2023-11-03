@@ -5,7 +5,6 @@ import React from "react";
 import Test from './screens/Test';
 import Search from './screens/Search';
 import Main from './screens/Main';
-import Autocomplete from './screens/Autocomplete';
 
 const Stack = createStackNavigator();
 
@@ -16,7 +15,6 @@ function App(){
         <Stack.Screen name="Test" component={Test} />
         <Stack.Screen name="Search" component={Search} />
         <Stack.Screen name="Main" component={Main} />
-        <Stack.Screen name="Autocomplete" component={Autocomplete} />
       </Stack.Navigator>
     </NavigationContainer>
   ) 

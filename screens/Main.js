@@ -1353,7 +1353,7 @@ export default function Main() {
 {/* 현재날짜요일시간 */}
 <Text style={styles.date}>{month}월 {day}일 {dayYo} </Text>
 <View style={styles.search}>
-<View style={styles.row}>
+<View style={styles.SearchRow}>
 
 {/* 검색창 */}
 <TextInput
@@ -1397,9 +1397,10 @@ export default function Main() {
       </TouchableOpacity>
         </View>
       </Modal>
-    
+      <View style={styles.ButtonText}>
     <Button
-       title="검색" onPress={searchLocation} />
+       title="검색" onPress={searchLocation} style={styles.closeButton} />
+      </View>
     </View>
    
 {/* <FilterProd ucts /> */}
@@ -1629,7 +1630,7 @@ export default function Main() {
       source={require('./src/assets/image/weather-icon/bookmark.png')}
       resizeMode={"contain"}
         />
-         <Text style={styles.lable}> MyPlace                                                        </Text>  
+         <Text style={styles.lable}> MyPlace                                                   </Text>  
          {/* 플러스 버튼과 간격두기 위한 죽음의 띄어쓰기.. */}
          <Image
       style={styles.miniIcon}
@@ -1842,6 +1843,13 @@ export default function Main() {
       textAlign: 'center',
       fontSize: 16,
     },
+    ButtonText: {
+      color: 'pink',
+      width: 50,
+      height: 35,
+      textAlign: 'center',
+      marginBottom: 15
+    },
     closeButton: {
       marginTop: 20,
       padding: 10,
@@ -1911,6 +1919,7 @@ export default function Main() {
     justifyContent:"space-between",
     // backgroundColor:"blue",
     alignItems: "flex-start",
+    marginRight: 10,
   },
   day:{
     width:SCREEN_WIDTH,
@@ -1928,8 +1937,18 @@ export default function Main() {
     justifyContent:"center",
     flexDirection:"row",
     // height: 200,
+    alignItems:"center",
     width : 390,
-   // marginBottom: 20,
+   marginTop: 20,
+  },
+  SearchRow:{
+    //backgroundColor:"#4169e1",
+    justifyContent:"center",
+    flexDirection:"row",
+    height: 30,
+    alignItems:"center",
+    width : 390,
+   marginTop: 10,
   },
   column:{
     paddingBottom: 5,
@@ -1968,10 +1987,10 @@ export default function Main() {
   },
   image:{
     width: 180,
-    height: 240,
+    height: 220,
     justifyContent:"flex-end",
     // backgroundColor:"#000080",
-    marginLeft:5,
+  
     marginTop:10
   },
   description:{
@@ -2044,7 +2063,7 @@ export default function Main() {
 
   card:{
     marginTop: 5,
-    marginLeft: 20,
+    marginLeft: 13,
     marginBottom: 15,
     paddingLeft: 10,
     paddingTop: 3,
@@ -2063,7 +2082,7 @@ export default function Main() {
 
   GPTcard:{
     marginTop: 12,
-    marginLeft: 20,
+    marginLeft: 13,
     marginBottom: 5,
     paddingLeft: 10,
     paddingTop: 15,
@@ -2146,7 +2165,7 @@ export default function Main() {
   
   dustData:{
     marginTop: 12,
-    marginLeft: 10,
+    marginLeft: 8,
     paddingTop: 5,
     width: 190,
     height:80,
@@ -2206,7 +2225,7 @@ export default function Main() {
 
   myplace:{
     //backgroundColor: "white",
-    width: 300,
+    width: 280,
     flexDirection:"row",
     marginTop: 12,
     marginBottom: 10,
@@ -2228,7 +2247,7 @@ export default function Main() {
     paddingBottom: 10,
     flexDirection:"column",
     justifyContent:"flex-start",
-    width: 350,
+    width: 340,
     //height: 150,
     marginTop: 10,
     marginLeft:20,
@@ -2289,7 +2308,7 @@ export default function Main() {
   weekly:{
     backgroundColor:'rgba(100, 150, 204, 0.3)',
     flexDirection:"row",
-    width: 350,
+    width: 340,
     height: 50,
     marginLeft : 20,
     paddingLeft : 20,
